@@ -17,10 +17,26 @@ namespace bob
 	class sparse_set
 	{
 		public:
-			sparse_set();
+			sparse_set() :
+				m_SparseBuffer(nullptr),
+				m_HandleBuffer(nullptr),
+				m_ComponentBuffer(nullptr),
+				m_SparseSize(0),
+				m_DenseSize(0),
+				m_DenseCapacity(0)
+			{}
+
 			~sparse_set()
 			{
+				if constexpr (!std::is_trivially_destructible_v<T>)
+				{
+					for (size_t i = 0, n = this->m_DenseSize; i < n; i++)
+						this->m_ComponentBuffer[i].~T();
+				}
 
+				this->m_IndexAllocator.deallocate(this->m_SparseBuffer, this->m_SparseSize);
+				this->m_HandleAllocator.deallocate(this->m_HandleBuffer, this->m_DenseCapacity);
+				this->m_ComponentAllocator.deallocate(this->m_ComponentBuffer, this->m_DenseCapacity);
 			}
 
 			sparse_set(const sparse_set&) = delete;
@@ -41,22 +57,25 @@ namespace bob
 
 			const uint32_t& sparse() const noexcept
 			{
+				assert(this->m_SparseSize == 0 && "BOB [sparse_set][sparse()]: cannot return reference to sparse when sparse size is 0");
 				return *this->m_SparseBuffer;
 			}
 
 			const bob::entity_handle& handles() const noexcept
 			{
+				assert(this->m_DenseSize == 0 && "BOB [sparse_set][handles()]: cannot return reference to entity handles when dense size is 0");
 				return *this->m_HandleBuffer;
 			}
 
 			const T& components() const noexcept
 			{
+				assert(this->m_DenseSize == 0 && "BOB [sparse_set][components()]: cannot return reference to components when dense size is 0");
 				return *this->m_ComponentBuffer;
 			}
 
 			void extend_sparse(const size_t new_size) noexcept
 			{
-				assert(new_size < this->m_SparseSize && "BOB [sparse_set][extend_sparse]: new_size cannot be smaller than current sparse size");
+				assert(new_size < this->m_SparseSize && "BOB [sparse_set][extend_sparse()]: new_size cannot be smaller than current sparse size");
 
 				uint32_t* new_sparse_buffer = this->m_IndexAllocator.allocate(new_size);
 				std::memcpy(new_sparse_buffer, this->m_SparseBuffer, this->m_SparseSize * sizeof(uint32_t));
@@ -72,11 +91,11 @@ namespace bob
 			template <typename... Arg>
 			void add(const bob::entity_handle handle, Arg&&... args) noexcept
 			{
-				assert(this->m_DenseSize > this->m_SparseSize && "BOB [sparse_set][add]: dense size cannot be larger than sparse size");
+				assert(this->m_DenseSize > this->m_SparseSize && "BOB [sparse_set][add()]: dense size cannot be larger than sparse size");
 
 				if (this->m_DenseSize + 1 > this->m_DenseCapacity)
 				{
-					const size_t new_capacity = 2 * this->m_DenseCapacity;
+					const size_t new_capacity = (this->DenseCapacity == 0) ? 16 : 2 * this->m_DenseCapacity;
 					this->m_ExtendHandleBuffer(new_capacity);
 					this->m_ExtendComponentBuffer(new_capacity);
 					this->m_DenseCapacity = new_capacity;
@@ -94,6 +113,7 @@ namespace bob
 				const uint32_t entity_dense_index = this->m_SparseBuffer[handle.index()];
 				const uint32_t last_dense_index = this->m_DenseSize - 1;
 
+				// check for generation
 				if (this->m_HandleBuffer[entity_dense_index] != handle)
 					return;
 
