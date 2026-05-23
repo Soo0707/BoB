@@ -135,7 +135,7 @@ namespace bob
 			}
 
 		private:
-			void m_ExtendHandleBuffer(const size_t new_capacity)
+			void m_ExtendHandleBuffer(const size_t new_capacity) noexcept
 			{
 				bob::entity_handle* new_handle_buffer = this->m_HandleAllocator.allocate(new_capacity);
 				std::memcpy(new_handle_buffer, this->m_HandleBuffer, this->m_DenseSize * sizeof(bob::entity_handle));
@@ -143,14 +143,14 @@ namespace bob
 				this->m_HandleBuffer = new_handle_buffer;
 			}
 
-			void m_ExtendComponentBuffer(const size_t new_capacity)
+			void m_ExtendComponentBuffer(const size_t new_capacity) noexcept
 			{
 				T* new_component_buffer = this->m_ComponentAllocator.allocate(new_capacity);
 
-				if constexpr (!std::is_trivially_copiable_v<T>)
+				if constexpr (!std::is_trivially_copyable_v<T>)
 				{
 					for (size_t i = 0, n = this->m_DenseSize; i < n; i++)
-						new (new_component_buffer + i) T(std::move_if_noexcept(this->m_ComponentBuffer[i]));
+						new (new_component_buffer + i) T(std::move(this->m_ComponentBuffer[i]));
 
 					for (size_t i = 0, n = this->m_DenseSize; i < n; i++)
 						this->m_ComponentBuffer[i].~T();
