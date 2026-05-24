@@ -17,7 +17,7 @@ entity_handle entity_handle_generator::get_new_handle() noexcept
 		new_handle = this->m_InvalidatedHandles.back();
 		this->m_InvalidatedHandles.pop_back();
 
-		new_handle = increment_generation(entity_handle);
+		new_handle = m_IncrementGeneration(entity_handle);
 	}
 	else
 	{
@@ -38,7 +38,28 @@ void entity_handle_generator::invalidate_handle(const entity_handle handle) noex
 	this->m_InvalidatedHandles.emplace_back(handle);
 }
 
-entity_handle increment_generation(const entity_handle handle) const noexcept
+uint32_t peak_next_handle() const noexcept
+{
+	entity_handle new_handle = bob::invalid_handle;
+
+	if (this->m_InvalidatedHandles.size() != 0)
+	{
+		new_handle = this->m_InvalidatedHandles.back();
+		new_handle = m_IncrementGeneration(entity_handle);
+	}
+	else
+	{
+		new_handle = entity_handle_generator::s_NextIndex;
+		assert(
+				entity_handle_generator::s_NextIndex <= 1048575 &&
+				"BOB [entity_handle_generator][peak_next_handle()]: ran out of indicies"
+				);
+	}
+
+	return new_handle;
+}
+
+entity_handle m_IncrementGeneration(const entity_handle handle) const noexcept
 {
 	uint32_t generation = handle.generation();
 

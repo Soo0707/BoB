@@ -13,11 +13,18 @@
 
 namespace bob
 {
+	struct abstract_sparse_set
+	{
+		sparse_set_interface() = default;
+		virtual ~sparse_set_interface() = default;
+	};
+
 	template <typename T>
-	class sparse_set
+	class sparse_set : public abstract_sparse_set
 	{
 		public:
 			sparse_set() :
+				abstract_sparse_set(),
 				m_SparseBuffer(nullptr),
 				m_HandleBuffer(nullptr),
 				m_ComponentBuffer(nullptr),
@@ -26,7 +33,7 @@ namespace bob
 				m_DenseCapacity(0)
 			{}
 
-			~sparse_set()
+			~sparse_set override()
 			{
 				if constexpr (!std::is_trivially_destructible_v<T>)
 				{
@@ -76,6 +83,7 @@ namespace bob
 			void extend_sparse(const size_t new_size) noexcept
 			{
 				assert(new_size > this->m_SparseSize && "BOB [sparse_set][extend_sparse()]: new_size cannot be smaller than current sparse size");
+				assert(new_size != this->m_SparseSize && "BOB [sparse_set][extend_sparse()]: new_size cannot be equal to current sparse size");
 
 				uint32_t* new_sparse_buffer = this->m_IndexAllocator.allocate(new_size);
 				std::memcpy(new_sparse_buffer, this->m_SparseBuffer, this->m_SparseSize * sizeof(uint32_t));
@@ -89,7 +97,7 @@ namespace bob
 			}
 
 			template <typename... Arg>
-			void add(const bob::entity_handle handle, Arg&&... args) noexcept
+			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
 				assert(this->m_DenseSize < this->m_SparseSize && "BOB [sparse_set][add()]: dense size cannot be larger than sparse size");
 
@@ -108,14 +116,14 @@ namespace bob
 				this->m_DenseSize++;
 			}
 
-			void remove(const bob::entity_handle handle) noexcept
+			void remove(const entity_handle handle) noexcept
 			{
 				const uint32_t entity_dense_index = this->m_SparseBuffer[handle.index()];
 				const uint32_t last_dense_index = this->m_DenseSize - 1;
 
 				assert(
 						this->m_HandleBuffer[entity_dense_index] != handle &&
-						"BOB [sparse_set][remove()]: requested for deletion of same id of different generation"
+						"BOB [sparse_set][remove()]: requested for deletion of same index of different generation"
 						);
 
 				const bob::entity_handle moving_entity = this->m_HandleBuffer[last_dense_index];
@@ -138,6 +146,9 @@ namespace bob
 		private:
 			void m_ExtendHandleBuffer(const size_t new_capacity) noexcept
 			{
+				assert(new_capacity > this->m_DenseCapacity && "BOB [sparse_set][m_ExtendHandleBuffer()]: new_capacity cannot be smaller than current capacity");
+				assert(new_capacity != this->m_DenseCapacity && "BOB [sparse_set][m_ExtendHandleBuffer()]: new_capacity cannot be equal to current capacity");
+
 				bob::entity_handle* new_handle_buffer = this->m_HandleAllocator.allocate(new_capacity);
 				std::memcpy(new_handle_buffer, this->m_HandleBuffer, this->m_DenseSize * sizeof(bob::entity_handle));
 				this->m_HandleAllocator.deallocate(this->m_HandleBuffer, this->m_DenseCapacity);
@@ -146,6 +157,9 @@ namespace bob
 
 			void m_ExtendComponentBuffer(const size_t new_capacity) noexcept
 			{
+				assert(new_capacity > this->m_DenseCapacity && "BOB [sparse_set][m_ExtendComponentBuffer()]: new_capacity cannot be smaller than current capacity");
+				assert(new_capacity != this->m_DenseCapacity && "BOB [sparse_set][m_ExtendComponentBuffer()]: new_capacity cannot be equal to current capacity");
+
 				T* new_component_buffer = this->m_ComponentAllocator.allocate(new_capacity);
 
 				if constexpr (!std::is_trivially_copyable_v<T>)
