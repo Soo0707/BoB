@@ -11,7 +11,8 @@ namespace bob
 	class entity_handle_generator
 	{
 		public:
-			entity_handle_generator() : m_NextIndex(0);
+			entity_handle_generator() : m_NextIndex(0)
+			{}
 
 			entity_handle get_new_handle() noexcept
 			{

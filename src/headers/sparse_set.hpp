@@ -15,8 +15,8 @@ namespace bob
 {
 	struct abstract_sparse_set
 	{
-		sparse_set_interface() = default;
-		virtual ~sparse_set_interface() = default;
+		abstract_sparse_set() = default;
+		virtual ~abstract_sparse_set() = default;
 	};
 
 	template <typename T>
