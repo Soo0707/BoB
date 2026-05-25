@@ -119,6 +119,10 @@ namespace bob
 			void remove(const entity_handle handle) noexcept
 			{
 				const uint32_t entity_dense_index = this->m_SparseBuffer[handle.index()];
+
+				if (entity_dense_index == bob::invalid_index)
+					return;
+
 				const uint32_t last_dense_index = this->m_DenseSize - 1;
 
 				assert(
@@ -146,8 +150,7 @@ namespace bob
 		private:
 			void m_ExtendHandleBuffer(const size_t new_capacity) noexcept
 			{
-				assert(new_capacity > this->m_DenseCapacity && "BOB [sparse_set][m_ExtendHandleBuffer()]: new_capacity cannot be smaller than current capacity");
-				assert(new_capacity != this->m_DenseCapacity && "BOB [sparse_set][m_ExtendHandleBuffer()]: new_capacity cannot be equal to current capacity");
+				assert(new_capacity > this->m_DenseCapacity && "BOB [sparse_set][m_ExtendHandleBuffer()]: new_capacity must be larger than current capacity");
 
 				bob::entity_handle* new_handle_buffer = this->m_HandleAllocator.allocate(new_capacity);
 				std::memcpy(new_handle_buffer, this->m_HandleBuffer, this->m_DenseSize * sizeof(bob::entity_handle));
@@ -157,8 +160,7 @@ namespace bob
 
 			void m_ExtendComponentBuffer(const size_t new_capacity) noexcept
 			{
-				assert(new_capacity > this->m_DenseCapacity && "BOB [sparse_set][m_ExtendComponentBuffer()]: new_capacity cannot be smaller than current capacity");
-				assert(new_capacity != this->m_DenseCapacity && "BOB [sparse_set][m_ExtendComponentBuffer()]: new_capacity cannot be equal to current capacity");
+				assert(new_capacity > this->m_DenseCapacity && "BOB [sparse_set][m_ExtendComponentBuffer()]: new_capacity must be larger than current capacity");
 
 				T* new_component_buffer = this->m_ComponentAllocator.allocate(new_capacity);
 

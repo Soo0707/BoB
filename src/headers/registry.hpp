@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstddef>
+#include <cassert>
 #include <algorithm>
 #include <memory>
 
@@ -21,11 +22,6 @@ namespace bob
 			entity_handle get_new_handle() noexcept
 			{
 				return m_HandleGenerator.get_new_handle();
-			}
-
-			void invalidate_handle(const entity_handle handle) noexcept
-			{
-				m_HandleGenerator.invalidate_handle(handle);
 			}
 
 			template <typename T>
@@ -65,13 +61,24 @@ namespace bob
 				child_ptr->add(handle, std::forward<Arg>(args)...);
 			}
 
-			template <typename T>
+			template <typename... T>
 			void remove(const entity_handle handle) noexcept
+			{
+				(this->m_RemoveComponent<T>(handle), ...);
+
+				this->m_HandleGenerator.invalidate_handle(handle);
+			}
+
+		private:
+			template <typename T>
+			void m_RemoveComponent(const entity_handle handle) noexcept
 			{
 				const size_t component_index = component_handle<T>();
 
-				if (component_index >= this->m_Sets.size())
-					return;
+				assert(
+						component_index < this->m_Sets.size() &&
+						"BOB [registry][m_RemoveComponent()]: component_index is larger than register set size. did you forget to register a component?"
+						);
 
 				abstract_sparse_set* base_ptr = this->m_Sets[component_index].get();
 				sparse_set<T>* child_ptr = static_cast<sparse_set<T>*>(base_ptr);
@@ -79,7 +86,6 @@ namespace bob
 				child_ptr->remove(handle);
 			}
 
-		private:
 			std::vector<std::unique_ptr<abstract_sparse_set>> m_Sets;
 			entity_handle_generator m_HandleGenerator;
 	};
