@@ -2,6 +2,7 @@
 #define BOB_ENTITY_HANDLE_GENERATOR
 
 #include <cstdint>
+#include <cassert>
 #include <vector>
 
 #include "entity_handle.hpp"
@@ -30,10 +31,7 @@ namespace bob
 					new_handle = entity_handle_generator::s_NextIndex;
 					entity_handle_generator::s_NextIndex++;
 
-					assert(
-							entity_handle_generator::s_NextIndex <= 1048575 &&
-							"BOB [entity_handle_generator][get_new_handle()]: ran out of indicies"
-							);
+					assert(entity_handle_generator::s_NextIndex <= 1048575 && "BOB [entity_handle_generator][get_new_handle()]: ran out of indicies");
 				}
 
 				return new_handle;
@@ -56,10 +54,7 @@ namespace bob
 				else
 				{
 					const uint32_t next_index = this->m_NextIndex;
-					assert(
-							entity_handle_generator::s_NextIndex <= 1048575 &&
-							"BOB [entity_handle_generator][peak_next_handle()]: ran out of indicies"
-							);
+					assert(entity_handle_generator::s_NextIndex <= 1048575 && "BOB [entity_handle_generator][peak_next_handle()]: ran out of indicies");
 					new_handle = entity_handle(new_index);
 				}
 
