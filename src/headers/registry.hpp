@@ -2,6 +2,7 @@
 #define BOB_REGISTRY
 
 #include <vector>
+
 #include <cstddef>
 #include <cassert>
 #include <algorithm>
@@ -20,8 +21,7 @@ namespace bob
 		public:
 			registry() : m_CurrentSparseSize(16)
 			{
-				static_assert(sizeof...(T) > 0 && "BOB [registry][registery()]: no component types were passed in for registration");
-
+				static_assert(sizeof...(Component) > 0 && "BOB [registry][registry()]: no component types were passed in for registration");
 				(this->m_RegisterComponent<Component>(), ...);
 
 				this->m_ExtendAllSparse();
@@ -40,23 +40,10 @@ namespace bob
 				if (next_handle.index() > this->m_CurrentSparseSize)
 					this->m_ExtendAllSparse();
 
-				const size_t component_index = component_handle<T>();
-
-				assert(
-						component_index < this->m_Sets.size() &&
-						"BOB [registry][add()]: component_index is larger than number of sparse sets. did you forget to register a component?"
-						);
-
-				assert(
-						this->m_Sets[component_index] != nullptr &&
-						"BOB [registry][add()]: component_index indexed to a nullptr. did you forget to register a component?"
-						);
-
-				abstract_sparse_set* base_ptr = this->m_Sets[component_index].get();
-				sparse_set<T>* child_ptr = static_cast<sparse_set<T>*>(base_ptr);
+				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
 
 				entity_handle new_handle = this->m_HandleGenerator.get_new_handle();
-				child_ptr->add(handle, std::forward<Arg>(args)...);
+				concrete_set.add(handle, std::forward<Arg>(args)...);
 			}
 
 			template <typename... T>
@@ -66,6 +53,21 @@ namespace bob
 				(this->m_RemoveComponent<T>(handle), ...);
 
 				this->m_HandleGenerator.invalidate_handle(handle);
+			}
+
+			template <typename... T>
+			handle_layer get_handles() noexcept
+			{
+				static_assert(sizeof...(T) > 0 && "BOB [registry][get_handles()]: no components passed into query");
+
+
+
+			}
+
+			template <typename T>
+			component_layer<T> get_component() noexcept
+			{
+
 			}
 
 		private:
@@ -82,42 +84,47 @@ namespace bob
 			}
 
 			template <typename T>
-			void m_RemoveComponent(const entity_handle handle) noexcept
+			#if defined(_MSC_VER) __forceinline #elif defined(__GNUC__) || defined(__clang__) __attribute__((always_inline)) #endif 
+			sparse_set<T>& m_DowncastSparse() noexcept
 			{
 				constexpr size_t component_index = component_handle<T>();
 
 				assert(
 						component_index < this->m_Sets.size() &&
-						"BOB [registry][m_RemoveComponent()]: component_index is larger than register set size. did you forget to register a component?"
+						"BOB [registry][m_DowncastSparse()]: component_index less than register internal set size. did you forget to register a component?"
 						);
 
 				abstract_sparse_set* base_ptr = this->m_Sets[component_index].get();
 				sparse_set<T>* child_ptr = static_cast<sparse_set<T>*>(base_ptr);
 
-				child_ptr->remove(handle);
+				return *child_ptr;
+			}
+
+			template <typename T>
+			void m_RemoveComponent(const entity_handle handle) noexcept
+			{
+				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
+				concrete_set.remove(handle);
 			}
 
 			template <typename T>
 			void m_ExtendSparse(const size_t new_size) noexcept
 			{
-				constexpr size_t component_index = component_handle<T>();
+				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
+				concrete_set.extend_sparse(new_size);
+			}
 
-				assert(
-						component_index < this->m_Sets.size() &&
-						"BOB [registry][m_ExtendSparse()]: component_index is larger than register set size, did you forget to register a component?"
-						);
-
-				abstract_sparse_set* base_ptr = this->m_Sets[component_index].get();
-				sparse_set<T>* child_ptr = static_cast<sparse_set<T>*>(base_ptr);
-
-				child_ptr->extend_sparse(new_size);
+			template <typename T>
+			sparse_layer m_GetHandleLayer() const noexcept
+			{
+				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
+				return concrete_set.get_handles();
 			}
 
 			void m_ExtendAllSparse() noexcept
 			{
 				this->m_CurrentSparseSize *= 2;
-
-				(this->m_ExtendSparse<Components>(this->m_CurrentSparseSize), ...);
+				(this->m_ExtendSparse<Component>(this->m_CurrentSparseSize), ...);
 			}
 
 			std::vector<std::unique_ptr<abstract_sparse_set>> m_Sets;

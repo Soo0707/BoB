@@ -13,12 +13,25 @@
 
 namespace bob
 {
+	struct handle_layer
+	{
+		size_t size;
+		const entity_handle& handles;
+	};
+
+	template <typename T>
+	struct component_layer
+	{
+		size_t size;
+		T& components;
+	}
+
 	struct abstract_sparse_set
 	{
 		abstract_sparse_set() = default;
 		virtual ~abstract_sparse_set() = default;
 	};
-
+	// TODO: revert back to std::vector but make a custom allocator
 	template <typename T>
 	class sparse_set : public abstract_sparse_set
 	{
@@ -52,32 +65,22 @@ namespace bob
 			sparse_set& operator=(const sparse_set&) = delete;
 			sparse_set& operator=(sparse_set&&) = delete;
 
-			size_t sparse_size() const noexcept
-			{
-				return this->m_SparseSize;
-			}
-
-			size_t dense_size() const noexcept
-			{
-				return this->m_DenseSize;
-			}
-
 			const uint32_t& sparse() const noexcept
 			{
 				assert(this->m_SparseSize != 0 && "BOB [sparse_set][sparse()]: cannot return reference to sparse when sparse size is 0");
 				return *this->m_SparseBuffer;
 			}
 
-			const bob::entity_handle& handles() const noexcept
+			handle_layer get_handles() const noexcept
 			{
-				assert(this->m_DenseSize != 0 && "BOB [sparse_set][handles()]: cannot return reference to entity handles when dense size is 0");
-				return *this->m_HandleBuffer;
+				assert(this->m_DenseSize != 0 && "BOB [sparse_set][get_handles()]: cannot return reference to entity handles when dense size is 0");
+				return handle_layer(this->m_DenseSize, this->m_HandleBuffer);
 			}
 
-			const T& components() const noexcept
+			dense_layer get_components() const noexcept
 			{
-				assert(this->m_DenseSize != 0 && "BOB [sparse_set][components()]: cannot return reference to components when dense size is 0");
-				return *this->m_ComponentBuffer;
+				assert(this->m_DenseSize != 0 && "BOB [sparse_set][get_components()]: cannot return reference to components when dense size is 0");
+				return component_layer<T>(this->m_DenseSize, this->m_ComponentBuffer);
 			}
 
 			void extend_sparse(const size_t new_size) noexcept
