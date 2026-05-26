@@ -13,14 +13,14 @@
 
 namespace bob
 {
-	struct handle_layer
+	struct handle_proxy
 	{
 		size_t size;
 		const entity_handle& handles;
 	};
 
 	template <typename T>
-	struct component_layer
+	struct component_proxy
 	{
 		size_t size;
 		T& components;
@@ -71,16 +71,16 @@ namespace bob
 				return *this->m_SparseBuffer;
 			}
 
-			handle_layer get_handles() const noexcept
+			handle_proxy get_handles() const noexcept
 			{
 				assert(this->m_DenseSize != 0 && "BOB [sparse_set][get_handles()]: cannot return reference to entity handles when dense size is 0");
-				return handle_layer(this->m_DenseSize, this->m_HandleBuffer);
+				return handle_proxy { this->m_DenseSize, this->m_HandleBuffer };
 			}
 
-			dense_layer get_components() const noexcept
+			component_proxy<T> get_components() const noexcept
 			{
 				assert(this->m_DenseSize != 0 && "BOB [sparse_set][get_components()]: cannot return reference to components when dense size is 0");
-				return component_layer<T>(this->m_DenseSize, this->m_ComponentBuffer);
+				return component_proxy<T>{ this->m_DenseSize, this->m_ComponentBuffer };
 			}
 
 			void extend_sparse(const size_t new_size) noexcept

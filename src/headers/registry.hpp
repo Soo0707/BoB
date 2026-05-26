@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <memory>
 #include <tuple>
+#include <utility>
 
 #include "sparse_set.hpp"
 #include "entity_handle.hpp"
@@ -18,6 +19,8 @@ namespace bob
 	class registry
 	{
 		public:
+			using component_types = std::tuple<Components...>;
+
 			registry() : m_CurrentSparseSize(16)
 			{
 				static_assert(sizeof...(Component) > 0 && "BOB [registry][registry()]: no component types were passed in for registration");
@@ -54,14 +57,12 @@ namespace bob
 				this->m_HandleGenerator.invalidate_handle(handle);
 			}
 			
-			using component_types = std::tuple<Components...>;
-
 			template <typename T, size_t Index = 0>
-			constexpr uint8_t component_handle() const noexcept
+			constexpr size_t component_handle() const noexcept
 			{
 				static_assert(
 						Index < std::tuple_size_v<component_types> &&
-						"BOB [registry][component_handle()]: could not resolve component handle to index"
+						"BOB [registry][component_handle()]: could not resolve component handle to index. did you forget to register a component?"
 						);
 
 				if constexpr (std::is_same_v<T, std::tuple_element_t<Index, component_types>>)
@@ -70,19 +71,25 @@ namespace bob
 					return component_handle<T, Index + 1>();
 			}
 
-			template <typename>
-
-			template <typename... T>
-			handle_layer get_handles() noexcept
+			template <typename First, typename... After>
+			handle_proxy get_handles() noexcept
 			{
-				static_assert(sizeof...(T) > 0 && "BOB [registry][get_handles()]: no components passed into query");
+				/*
+				TODO: it might be a good idea to sort the arbitrary ordered components at compile time
+				but that is way above my paygrade. this might still be faster than manual iteration and a
+				virtual query but not sorting means that we're accessing m_Sets in an effectively arbitrary order
+				which would likely cause cache misses.
+				 */
+				handle_proxy smallest = this->m_GetHandleLayer<First>();
 
+				if constexpr (sizeof...(After) > 0)
+					((smallest = this->m_SelectSmallerSparse<After>(smallest)), ...);
 
-
+				return smallest;
 			}
 
 			template <typename T>
-			component_layer<T> get_component() noexcept
+			component_proxy<T> get_component() noexcept
 			{
 
 			}
@@ -92,11 +99,9 @@ namespace bob
 			void m_RegisterComponent() noexcept
 			{
 				const size_t component_index = component_handle<T>();
-
 				this->m_Sets.resize(std::max(this->m_Sets.size(), component_index + 1));
 
 				assert(this->m_Sets[component_index] == nullptr && "BOB [registry][m_RegisterComponent()]: a component has been registered twice.");
-
 				this->m_Sets[component_index] = std::make_unique<sparse_set<T>>();
 			}
 
@@ -132,10 +137,17 @@ namespace bob
 			}
 
 			template <typename T>
-			sparse_layer m_GetHandleLayer() const noexcept
+			handle_proxy m_GetHandleLayer() const noexcept
 			{
 				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
 				return concrete_set.get_handles();
+			}
+
+			template <typename T>
+			handle_proxy m_SelectSmallerSparse(const handle_proxy current) const noexcept
+			{
+				const handle_proxy next = this->m_GetHandleLayer<T>();
+				return (next.size < current.size) ? next : current;
 			}
 
 			void m_ExtendAllSparse() noexcept
