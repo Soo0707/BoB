@@ -2,14 +2,13 @@
 #define BOB_REGISTRY
 
 #include <vector>
-
 #include <cstddef>
 #include <cassert>
 #include <algorithm>
 #include <memory>
+#include <tuple>
 
 #include "sparse_set.hpp"
-#include "component_handle.hpp"
 #include "entity_handle.hpp"
 #include "entity_handle_generator.hpp"
 
@@ -54,6 +53,24 @@ namespace bob
 
 				this->m_HandleGenerator.invalidate_handle(handle);
 			}
+			
+			using component_types = std::tuple<Components...>;
+
+			template <typename T, size_t Index = 0>
+			constexpr uint8_t component_handle() const noexcept
+			{
+				static_assert(
+						Index < std::tuple_size_v<component_types> &&
+						"BOB [registry][component_handle()]: could not resolve component handle to index"
+						);
+
+				if constexpr (std::is_same_v<T, std::tuple_element_t<Index, component_types>>)
+					return Index;
+				else
+					return component_handle<T, Index + 1>();
+			}
+
+			template <typename>
 
 			template <typename... T>
 			handle_layer get_handles() noexcept
