@@ -41,9 +41,9 @@ namespace bob
 
 		private:
 			uint32_t m_Handle;
-	}
+	};
 
-	inline constexpr entity_handle invalid_handle { 0xffffffff };
+	inline constexpr entity_handle invalid_handle = entity_handle(0xffffffff);
 	inline constexpr uint32_t invalid_index { 0xffffffff };
 	inline constexpr uint32_t max_index { 0xffffffff };
 };

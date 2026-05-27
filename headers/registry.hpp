@@ -19,7 +19,7 @@ namespace bob
 	class registry
 	{
 		public:
-			using component_types = std::tuple<Components...>;
+			using component_types = std::tuple<Component...>;
 
 			registry() : m_CurrentSparseSize(16)
 			{
@@ -27,9 +27,8 @@ namespace bob
 						sizeof...(Component) > 0 &&
 						"BOB [registry][registry()]: no component types were passed in for registration"
 						);
-				(this->m_RegisterComponent<Component>(), ...);
 
-				this->m_ExtendAllSparse();
+				(m_RegisterComponent<Component>(), ...);
 			}
 
 			entity_handle get_new_handle() noexcept
@@ -40,14 +39,7 @@ namespace bob
 			template <typename T, typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
-				const entity_handle next_handle = this->m_HandleGenerator.peak_next_handle();
-
-				if (next_handle.index() > this->m_CurrentSparseSize)
-					this->m_ExtendAllSparse();
-
-				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
-
-				entity_handle new_handle = this->m_HandleGenerator.get_new_handle();
+				sparse_set<T>& concrete_set = m_DowncastSparse<T>();
 				concrete_set.add(handle, std::forward<Arg>(args)...);
 			}
 
@@ -58,8 +50,8 @@ namespace bob
 						sizeof...(T) > 0 &&
 						"BOB [registry][remove()]: number of components to be removed must be more than 0"
 						);
-				(this->m_RemoveComponent<T>(handle), ...);
 
+				(m_RemoveComponent<T>(handle), ...);
 				this->m_HandleGenerator.invalidate_handle(handle);
 			}
 			
@@ -74,10 +66,10 @@ namespace bob
 
 				branch predictor go brrrrrrrrrrrrrrr
 				 */
-				handle_proxy smallest = this->m_GetHandleLayer<First>();
+				handle_proxy smallest = m_GetHandleLayer<First>();
 
 				if constexpr (sizeof...(After) > 0)
-					((smallest = this->m_SelectSmallerSparse<After>(smallest)), ...);
+					((smallest = m_SelectSmallerSparse<After>(smallest)), ...);
 
 				return smallest;
 			}
@@ -85,8 +77,8 @@ namespace bob
 			template <typename T>
 			component_proxy<T> get_component() noexcept
 			{
-				sparse_set<T>* concrete = this->m_DowncastSparse<T>();
-				return concrete.get_component();
+				sparse_set<T>& concrete = m_DowncastSparse<T>();
+				return concrete.get_components();
 			}
 
 		private:
@@ -107,7 +99,7 @@ namespace bob
 			template <typename T>
 			void m_RegisterComponent() noexcept
 			{
-				const size_t component_index = this->m_ComponentHandle<T>();
+				const size_t component_index = m_ComponentHandle<T>();
 				this->m_Sets.resize(std::max(this->m_Sets.size(), component_index + 1));
 
 				assert(
@@ -118,10 +110,9 @@ namespace bob
 			}
 
 			template <typename T>
-			#if defined(_MSC_VER) __forceinline #elif defined(__GNUC__) || defined(__clang__) __attribute__((always_inline)) #endif 
 			sparse_set<T>& m_DowncastSparse() noexcept
 			{
-				constexpr size_t component_index = this->m_ComponentHandle<T>();
+				constexpr size_t component_index = m_ComponentHandle<T>();
 
 				assert(
 						component_index < this->m_Sets.size() &&
@@ -135,37 +126,40 @@ namespace bob
 			}
 
 			template <typename T>
-			void m_RemoveComponent(const entity_handle handle) noexcept
+			const sparse_set<T>& m_DowncastSparse() const noexcept
 			{
-				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
-				concrete_set.remove(handle);
+				constexpr size_t component_index = m_ComponentHandle<T>();
+
+				assert(
+						component_index < this->m_Sets.size() &&
+						"BOB [registry][m_DowncastSparse()]: component_index less than register internal set size. did you forget to register a component?"
+						);
+
+				abstract_sparse_set* base_ptr = this->m_Sets[component_index].get();
+				const sparse_set<T>* child_ptr = static_cast<const sparse_set<T>*>(base_ptr);
+
+				return *child_ptr;
 			}
 
 			template <typename T>
-			void m_ExtendSparse(const size_t new_size) noexcept
+			void m_RemoveComponent(const entity_handle handle) noexcept
 			{
-				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
-				concrete_set.extend_sparse(new_size);
+				sparse_set<T>& concrete_set = m_DowncastSparse<T>();
+				concrete_set.remove(handle);
 			}
 
 			template <typename T>
 			handle_proxy m_GetHandleLayer() const noexcept
 			{
-				sparse_set<T>& concrete_set = this->m_DowncastSparse<T>();
+				const sparse_set<T>& concrete_set = m_DowncastSparse<T>();
 				return concrete_set.get_handles();
 			}
 
 			template <typename T>
 			handle_proxy m_SelectSmallerSparse(const handle_proxy current) const noexcept
 			{
-				const handle_proxy next = this->m_GetHandleLayer<T>();
+				const handle_proxy next = m_GetHandleLayer<T>();
 				return (next.size < current.size) ? next : current;
-			}
-
-			void m_ExtendAllSparse() noexcept
-			{
-				this->m_CurrentSparseSize *= 2;
-				(this->m_ExtendSparse<Component>(this->m_CurrentSparseSize), ...);
 			}
 
 			std::vector<std::unique_ptr<abstract_sparse_set>> m_Sets;

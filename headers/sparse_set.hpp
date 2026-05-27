@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cassert>
-#include <string>
+#include <cstring>
 #include <algorithm>
 
 #include "entity_handle.hpp"
@@ -16,7 +16,7 @@ namespace bob
 	struct handle_proxy
 	{
 		size_t size;
-		const entity_handle const* handles;
+		const entity_handle* handles;
 	};
 
 	template <typename T>
@@ -24,7 +24,7 @@ namespace bob
 	{
 		size_t size;
 		T* components;
-	}
+	};
 
 	struct abstract_sparse_set
 	{
@@ -46,7 +46,7 @@ namespace bob
 				m_DenseCapacity(0)
 			{}
 
-			~sparse_set override()
+			~sparse_set() override
 			{
 				if constexpr (!std::is_trivially_destructible_v<T>)
 				{
@@ -64,15 +64,6 @@ namespace bob
 
 			sparse_set& operator=(const sparse_set&) = delete;
 			sparse_set& operator=(sparse_set&&) = delete;
-
-			const uint32_t* sparse() const noexcept
-			{
-				assert(
-						this->m_SparseSize != 0 &&
-						"BOB [sparse_set][sparse()]: cannot return reference to sparse when sparse size is 0"
-						);
-				return this->m_SparseBuffer;
-			}
 
 			handle_proxy get_handles() const noexcept
 			{
@@ -92,35 +83,15 @@ namespace bob
 				return component_proxy<T>{ this->m_DenseSize, this->m_ComponentBuffer };
 			}
 
-			void extend_sparse(const size_t new_size) noexcept
-			{
-				assert(
-						new_size > this->m_SparseSize &&
-						"BOB [sparse_set][extend_sparse()]: new_size cannot be smaller than current sparse size"
-						);
-
-				uint32_t* new_sparse_buffer = this->m_IndexAllocator.allocate(new_size);
-				std::memcpy(new_sparse_buffer, this->m_SparseBuffer, this->m_SparseSize * sizeof(uint32_t));
-				this->m_IndexAllocator.deallocate(this->m_SparseBuffer, this->m_SparseSize);
-
-				for (size_t i = this->m_SparseSize; i < new_size; i++)
-					new_sparse_buffer[i] = bob::invalid_index;
-
-				this->m_SparseBuffer = new_sparse_buffer;
-				this->m_SparseSize = new_size;
-			}
-
 			template <typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
-				assert(
-						this->m_DenseSize < this->m_SparseSize &&
-						"BOB [sparse_set][add()]: dense size cannot be larger than sparse size"
-						);
-
+				if (handle.index() >= this->m_SparseSize)
+					this->m_ExtendSparseBuffer(handle.index() + 1);
+				
 				if (this->m_DenseSize + 1 > this->m_DenseCapacity)
 				{
-					const size_t new_capacity = (this->DenseCapacity == 0) ? 16 : 2 * this->m_DenseCapacity;
+					const size_t new_capacity = (this->m_DenseCapacity == 0) ? 16 : 2 * this->m_DenseCapacity;
 					this->m_ExtendHandleBuffer(new_capacity);
 					this->m_ExtendComponentBuffer(new_capacity);
 					this->m_DenseCapacity = new_capacity;
@@ -143,7 +114,7 @@ namespace bob
 				const uint32_t last_dense_index = this->m_DenseSize - 1;
 
 				assert(
-						this->m_HandleBuffer[entity_dense_index] != handle &&
+						this->m_HandleBuffer[entity_dense_index] == handle &&
 						"BOB [sparse_set][remove()]: requested for deletion of same index of different generation"
 						);
 
@@ -165,6 +136,24 @@ namespace bob
 			}
 
 		private:
+			void m_ExtendSparseBuffer(const size_t new_size) noexcept
+			{
+				assert(
+						new_size > this->m_SparseSize &&
+						"BOB [sparse_set][m_ExtendSparse()]: new_size cannot be smaller than current sparse size"
+						);
+
+				uint32_t* new_sparse_buffer = this->m_IndexAllocator.allocate(new_size);
+				std::memcpy(new_sparse_buffer, this->m_SparseBuffer, this->m_SparseSize * sizeof(uint32_t));
+				this->m_IndexAllocator.deallocate(this->m_SparseBuffer, this->m_SparseSize);
+
+				for (size_t i = this->m_SparseSize; i < new_size; i++)
+					new_sparse_buffer[i] = bob::invalid_index;
+
+				this->m_SparseBuffer = new_sparse_buffer;
+				this->m_SparseSize = new_size;
+			}
+
 			void m_ExtendHandleBuffer(const size_t new_capacity) noexcept
 			{
 				assert(

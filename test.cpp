@@ -1,6 +1,7 @@
 #include <iostream>
-#include <cassert>
+#include <cstdint>
 #include <string>
+#include <cassert>
 
 #include "entity_handle.hpp"
 #include "entity_handle_generator.hpp"
@@ -11,10 +12,12 @@ struct Vector2
 {
 	float x;
 	float y;
-}
+};
 
 struct Tag
-{};
+{
+	const char * text = "ts a tag";
+};
 
 void test_entity_handle()
 {
@@ -28,19 +31,19 @@ void test_entity_handle()
 
 	assert(six_handle.index() == 6);
 	assert(six_handle.generation() == 0);
-	assert(zero_handle.value() == 6);
+	assert(six_handle.value() == 6);
 
 	const bob::entity_handle seventh_generation = bob::entity_handle(0x700000);
 
 	assert(seventh_generation.index() == 0);
 	assert(seventh_generation.generation() == 7);
-	assert(zero_handle.value() == 0x700000);
+	assert(seventh_generation.value() == 0x700000);
 
 	const bob::entity_handle mixed = bob::entity_handle(0x600007);
 
-	assert(mix.index() == 7);
-	assert(mix.generation() == 6);
-	assert(mix.value() == 0x600007);
+	assert(mixed.index() == 7);
+	assert(mixed.generation() == 6);
+	assert(mixed.value() == 0x600007);
 
 	const bob::entity_handle first_same = bob::entity_handle(0x400005);
 	const bob::entity_handle second_same = bob::entity_handle(0x400005);
@@ -55,7 +58,7 @@ void test_entity_handle()
 
 void test_entity_handle_generator()
 {
-	const bob::entity_handle_generator handle_generator = bob::entity_handle_generator();
+	bob::entity_handle_generator handle_generator = bob::entity_handle_generator();
 
 	const bob::entity_handle first_handle = handle_generator.get_new_handle();
 	assert(first_handle == bob::entity_handle(0));
@@ -63,7 +66,7 @@ void test_entity_handle_generator()
 	const bob::entity_handle second_handle = handle_generator.get_new_handle();
 	assert(second_handle == bob::entity_handle(1));
 
-	handle_generator.invalid_handle(second_handle);
+	handle_generator.invalidate_handle(second_handle);
 
 	const bob::entity_handle next_handle = handle_generator.peak_next_handle();
 	assert(next_handle == bob::entity_handle(0x100001));
@@ -72,20 +75,13 @@ void test_entity_handle_generator()
 	assert(last_invalidated_handle == bob::entity_handle(0x100001));
 
 	const bob::entity_handle third_handle = handle_generator.get_new_handle();
-	assert(third_handle == bob::entity_handle(3));
+	assert(third_handle == bob::entity_handle(2));
 }
 
 void test_sparse_set()
 {
 	bob::sparse_set<Tag> tag_sparse = bob::sparse_set<Tag>();
 	
-	tag_sparse.extend_sparse(2);
-	for (int i = 0; i < 2; i++)
-	{
-		const uint32_t const* tag_sparse_outer = tag_sparse.sparse();
-		assert(tag_sparse_outer[i] == bob::invalid_index);
-	}
-
 	bob::entity_handle_generator tag_handle_generator = bob::entity_handle_generator();
 	for (int i = 0; i < 4; i++)
 	{
@@ -101,36 +97,22 @@ void test_sparse_set()
 		const uint32_t dense_index = tag_handle_proxy.handles[i].index();
 		const bob::entity_handle handle = bob::entity_handle(i);
 
-		assert[tag_component_proxy.handles[dense_index] == handle];
+		assert(tag_handle_proxy.handles[dense_index] == handle);
 	}
 
 	const bob::component_proxy<Tag> tag_component_proxy = tag_sparse.get_components();
 	assert(tag_component_proxy.size == 4);
-
-	for (uint32_t i = 0, n = tag_component_proxy.size; i < n; i++)
-	{
-		const Tag tag = tag_component_proxy.components[i];
-		assert[tag == Tag()];
-	}
 
 	for (uint32_t i = 0; i < 4; i++)
 	{
 		const bob::entity_handle handle = bob::entity_handle(i);
 		tag_sparse.remove(handle);
 	}
-
-	for (int i = 0; i < 4; i++)
-	{
-		const uint32_t const* tag_sparse_outer = tag_sparse.sparse();
-		assert(tag_sparse_outer[i] == bob::invalid_index);
-	}
 }
 
 void test_registry()
 {
-	using test_registry = registry<Tag, Vector2, std::string>;
-
-	test_registry r = registry<Tag, Vector2, std::string>();
+	bob::registry<Tag, Vector2, std::string> r;
 
 	const bob::entity_handle first_handle = r.get_new_handle();
 	assert(first_handle == bob::entity_handle(0));
@@ -162,37 +144,45 @@ void test_registry()
 	const bob::handle_proxy string_handle_proxy = r.get_handles<std::string>();
 	assert(string_handle_proxy.size == 3);
 
+	std::cout << "STRING ONLY" << "\n";
 	for (uint32_t i = 0, n = string_handle_proxy.size; i < n; i++)
 	{
-		std::cout << "\n\n";
 		const uint32_t dense_index = string_handle_proxy.handles[i].index();
 		std::cout << dense_index << ": " << string_components.components[dense_index] << std::endl;
-		std::cout << "\n\n";
 	}
+	std::cout << "\n";
 
 	const bob::handle_proxy string_vector_handle_proxy = r.get_handles<Vector2, std::string>();
 	assert(string_vector_handle_proxy.size == 2);
 
+	std::cout << "STRING AND VECTOR" << "\n";
 	for (uint32_t i = 0, n = string_vector_handle_proxy.size; i < n; i++)
 	{
-		std::cout << "\n\n";
 		const uint32_t dense_index = string_vector_handle_proxy.handles[i].index();
 		std::cout << dense_index << ": " <<
-			string_components.components[dense_index] << ", " << vector_components.components[dense_index]
+			string_components.components[dense_index] << ", "
+			<< vector_components.components[dense_index].x << ", "
+			<< vector_components.components[dense_index].y
 			<< std::endl;
-		std::cout << "\n\n";
 	}
+	std::cout << "\n";
 
 	const bob::handle_proxy string_vector_tag_handle_proxy = r.get_handles<Tag, Vector2, std::string>();
 	assert(string_vector_tag_handle_proxy.size == 1);
 
-	std::cout << "\n\n";
-	const uint32_t dense_index = string_vector_tag_handle_proxy.handles[i].index();
-	std::cout << dense_index << ": " <<
-		string_components.components[dense_index] << ", " << vector_components.components[dense_index] <<
+	std::cout << "STRING VECTOR AND TAG\n";
+	const uint32_t dense_index = string_vector_tag_handle_proxy.handles[0].index();
+	std::cout
+		<< dense_index
+		<< ": "
+		<< string_components.components[dense_index]
+		<< ", "
+		<< vector_components.components[dense_index].x
+		<< ", "
+		<< vector_components.components[dense_index].y
+		<< tag_components.components[dense_index].text
 		<< std::endl;
-
-	std::cout << "\n\n";
+	std::cout << "\n";
 
 	r.remove<Tag, Vector2, std::string>(third_handle);
 	r.remove<Vector2, std::string>(second_handle);
@@ -202,7 +192,11 @@ void test_registry()
 int main(void)
 {
 	test_entity_handle();
+	std::cout << "entity_handle tests passed!" << std::endl; 
 	test_entity_handle_generator();
+	std::cout << "entity_handle_generator tests passed!" << std::endl; 
 	test_sparse_set();
+	std::cout << "sparse_set tests passed!" << std::endl; 
 	test_registry();
+	std::cout << "registry tests passed!" << std::endl; 
 }

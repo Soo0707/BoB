@@ -17,14 +17,14 @@ namespace bob
 
 			entity_handle get_new_handle() noexcept
 			{
-				entity_handle new_handle = bob::invalid_handle;
+				entity_handle new_handle = invalid_handle;
 
 				if (this->m_InvalidatedHandles.size() != 0)
 				{
 					new_handle = this->m_InvalidatedHandles.back();
 					this->m_InvalidatedHandles.pop_back();
 
-					new_handle = m_IncrementGeneration(entity_handle);
+					new_handle = m_IncrementGeneration(new_handle);
 				}
 				else
 				{
@@ -52,12 +52,12 @@ namespace bob
 
 			entity_handle peak_next_handle() const noexcept
 			{
-				entity_handle new_handle = bob::invalid_handle;
+				entity_handle new_handle = invalid_handle;
 
 				if (this->m_InvalidatedHandles.size() != 0)
 				{
 					new_handle = this->m_InvalidatedHandles.back();
-					new_handle = m_IncrementGeneration(entity_handle);
+					new_handle = this->m_IncrementGeneration(new_handle);
 				}
 				else
 				{
@@ -66,7 +66,7 @@ namespace bob
 							this->m_NextIndex <= 1048575 &&
 							"BOB [entity_handle_generator][peak_next_handle()]: ran out of indicies"
 							);
-					new_handle = entity_handle(new_index);
+					new_handle = entity_handle(next_index);
 				}
 
 				return new_handle;
