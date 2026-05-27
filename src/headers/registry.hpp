@@ -63,20 +63,6 @@ namespace bob
 				this->m_HandleGenerator.invalidate_handle(handle);
 			}
 			
-			template <typename T, size_t Index = 0>
-			constexpr size_t component_handle() const noexcept
-			{
-				static_assert(
-						Index < std::tuple_size_v<component_types> &&
-						"BOB [registry][component_handle()]: could not resolve component handle to index. did you forget to register a component?"
-						);
-
-				if constexpr (std::is_same_v<T, std::tuple_element_t<Index, component_types>>)
-					return Index;
-				else
-					return component_handle<T, Index + 1>();
-			}
-
 			template <typename First, typename... After>
 			handle_proxy get_handles() noexcept
 			{
@@ -100,14 +86,28 @@ namespace bob
 			component_proxy<T> get_component() noexcept
 			{
 				sparse_set<T>* concrete = this->m_DowncastSparse<T>();
-				return concrete.
+				return concrete.get_component();
 			}
 
 		private:
+			template <typename T, size_t Index = 0>
+			constexpr size_t m_ComponentHandle() const noexcept
+			{
+				static_assert(
+						Index < std::tuple_size_v<component_types> &&
+						"BOB [registry][m_ComponentHandle()]: could not resolve component handle to index. did you forget to register a component?"
+						);
+
+				if constexpr (std::is_same_v<T, std::tuple_element_t<Index, component_types>>)
+					return Index;
+				else
+					return m_ComponentHandle<T, Index + 1>();
+			}
+
 			template <typename T>
 			void m_RegisterComponent() noexcept
 			{
-				const size_t component_index = component_handle<T>();
+				const size_t component_index = this->m_ComponentHandle<T>();
 				this->m_Sets.resize(std::max(this->m_Sets.size(), component_index + 1));
 
 				assert(
@@ -121,7 +121,7 @@ namespace bob
 			#if defined(_MSC_VER) __forceinline #elif defined(__GNUC__) || defined(__clang__) __attribute__((always_inline)) #endif 
 			sparse_set<T>& m_DowncastSparse() noexcept
 			{
-				constexpr size_t component_index = component_handle<T>();
+				constexpr size_t component_index = this->m_ComponentHandle<T>();
 
 				assert(
 						component_index < this->m_Sets.size() &&

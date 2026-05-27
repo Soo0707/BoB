@@ -28,10 +28,13 @@ namespace bob
 				}
 				else
 				{
-					new_handle = entity_handle_generator::s_NextIndex;
-					entity_handle_generator::s_NextIndex++;
+					new_handle = this->m_NextIndex;
+					this->m_NextIndex++;
 
-					assert(entity_handle_generator::s_NextIndex <= 1048575 && "BOB [entity_handle_generator][get_new_handle()]: ran out of indicies");
+					assert(
+							this->m_NextIndex <= 1048575 &&
+							"BOB [entity_handle_generator][get_new_handle()]: ran out of indicies"
+							);
 				}
 
 				return new_handle;
@@ -39,6 +42,11 @@ namespace bob
 
 			void invalidate_handle(const entity_handle handle) noexcept
 			{
+				// TODO: this function accepts duplicates which is unavoidable without a linear scan
+				assert(
+						handle.index() < this->m_NextIndex &&
+						"BOB [entity_handle_generator][invalidate_handle()]: invalidated handle that was never handed out"
+						);
 				this->m_InvalidatedHandles.emplace_back(handle);
 			}
 
@@ -54,7 +62,10 @@ namespace bob
 				else
 				{
 					const uint32_t next_index = this->m_NextIndex;
-					assert(entity_handle_generator::s_NextIndex <= 1048575 && "BOB [entity_handle_generator][peak_next_handle()]: ran out of indicies");
+					assert(
+							this->m_NextIndex <= 1048575 &&
+							"BOB [entity_handle_generator][peak_next_handle()]: ran out of indicies"
+							);
 					new_handle = entity_handle(new_index);
 				}
 

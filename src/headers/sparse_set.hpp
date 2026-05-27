@@ -16,14 +16,14 @@ namespace bob
 	struct handle_proxy
 	{
 		size_t size;
-		const entity_handle& handles;
+		const entity_handle const* handles;
 	};
 
 	template <typename T>
 	struct component_proxy
 	{
 		size_t size;
-		T& components;
+		T* components;
 	}
 
 	struct abstract_sparse_set
@@ -65,13 +65,13 @@ namespace bob
 			sparse_set& operator=(const sparse_set&) = delete;
 			sparse_set& operator=(sparse_set&&) = delete;
 
-			const uint32_t& sparse() const noexcept
+			const uint32_t* sparse() const noexcept
 			{
 				assert(
 						this->m_SparseSize != 0 &&
 						"BOB [sparse_set][sparse()]: cannot return reference to sparse when sparse size is 0"
 						);
-				return *this->m_SparseBuffer;
+				return this->m_SparseBuffer;
 			}
 
 			handle_proxy get_handles() const noexcept
