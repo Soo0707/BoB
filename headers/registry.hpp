@@ -21,7 +21,7 @@ namespace bob
 		public:
 			using component_types = std::tuple<Component...>;
 
-			registry() : m_CurrentSparseSize(16)
+			registry()
 			{
 				static_assert(
 						sizeof...(Component) > 0 &&
@@ -56,7 +56,7 @@ namespace bob
 			}
 			
 			template <typename First, typename... After>
-			handle_proxy get_handles() noexcept
+			const std::vector<entity_handle>& get_handles() const noexcept
 			{
 				/*
 				TODO: it might be a good idea to sort the arbitrary ordered components at compile time
@@ -65,17 +65,20 @@ namespace bob
 				which would likely cause cache misses.
 
 				branch predictor go brrrrrrrrrrrrrrr
+
+				note to self: this stupid template costed you hours of your sanity
+				a const reference is non reassignable, to do this correctly, you need to make a pointer
 				 */
-				handle_proxy smallest = m_GetHandleLayer<First>();
+				const std::vector<entity_handle>* smallest = &m_GetHandleLayer<First>();
 
 				if constexpr (sizeof...(After) > 0)
-					((smallest = m_SelectSmallerSparse<After>(smallest)), ...);
+					((smallest = &m_SelectSmallerSparse<After>(*smallest)), ...);
 
-				return smallest;
+				return *smallest;
 			}
-
+			// TODO: get sparse function so that we can use handles to translate into dense layer
 			template <typename T>
-			component_proxy<T> get_component() noexcept
+			std::vector<T>& get_component() noexcept
 			{
 				sparse_set<T>& concrete = m_DowncastSparse<T>();
 				return concrete.get_components();
@@ -108,23 +111,7 @@ namespace bob
 						);
 				this->m_Sets[component_index] = std::make_unique<sparse_set<T>>();
 			}
-
-			template <typename T>
-			sparse_set<T>& m_DowncastSparse() noexcept
-			{
-				constexpr size_t component_index = m_ComponentHandle<T>();
-
-				assert(
-						component_index < this->m_Sets.size() &&
-						"BOB [registry][m_DowncastSparse()]: component_index less than register internal set size. did you forget to register a component?"
-						);
-
-				abstract_sparse_set* base_ptr = this->m_Sets[component_index].get();
-				sparse_set<T>* child_ptr = static_cast<sparse_set<T>*>(base_ptr);
-
-				return *child_ptr;
-			}
-
+			
 			template <typename T>
 			const sparse_set<T>& m_DowncastSparse() const noexcept
 			{
@@ -136,9 +123,35 @@ namespace bob
 						);
 
 				abstract_sparse_set* base_ptr = this->m_Sets[component_index].get();
-				const sparse_set<T>* child_ptr = static_cast<const sparse_set<T>*>(base_ptr);
+				const sparse_set<T>* child_ptr = static_cast<sparse_set<T>*>(base_ptr);
 
 				return *child_ptr;
+			}
+
+			template <typename T>
+			sparse_set<T>& m_DowncastSparse() noexcept
+			{
+				return const_cast<sparse_set<T>&>(std::as_const(*this).template m_DowncastSparse<T>());
+			}
+
+			template <typename T>
+			const std::vector<entity_handle>& m_GetHandleLayer() const noexcept
+			{
+				const sparse_set<T>& concrete_set = m_DowncastSparse<T>();
+				return concrete_set.get_handles();
+			}
+
+			template <typename T>
+			std::vector<entity_handle>& m_GetHandleLayer() noexcept
+			{
+				return const_cast<sparse_set<T>&>(std::as_const(*this).template m_GetHandleLayer());
+			}
+
+			template <typename T>
+			const std::vector<entity_handle>& m_SelectSmallerSparse(const std::vector<entity_handle>& current) const noexcept
+			{
+				const std::vector<entity_handle>& next = m_GetHandleLayer<T>();
+				return (next.size() < current.size()) ? next : current;
 			}
 
 			template <typename T>
@@ -148,23 +161,8 @@ namespace bob
 				concrete_set.remove(handle);
 			}
 
-			template <typename T>
-			handle_proxy m_GetHandleLayer() const noexcept
-			{
-				const sparse_set<T>& concrete_set = m_DowncastSparse<T>();
-				return concrete_set.get_handles();
-			}
-
-			template <typename T>
-			handle_proxy m_SelectSmallerSparse(const handle_proxy current) const noexcept
-			{
-				const handle_proxy next = m_GetHandleLayer<T>();
-				return (next.size < current.size) ? next : current;
-			}
-
 			std::vector<std::unique_ptr<abstract_sparse_set>> m_Sets;
 			entity_handle_generator m_HandleGenerator;
-			size_t m_CurrentSparseSize;
 	};
 };
 #endif

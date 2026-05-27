@@ -15,9 +15,7 @@ struct Vector2
 };
 
 struct Tag
-{
-	const char * text = "ts a tag";
-};
+{};
 
 void test_entity_handle()
 {
@@ -89,19 +87,19 @@ void test_sparse_set()
 		tag_sparse.add(handle);
 	}
 
-	const bob::handle_proxy tag_handle_proxy = tag_sparse.get_handles();
-	assert(tag_handle_proxy.size == 4);
+	const std::vector<bob::entity_handle>& tag_handles = tag_sparse.get_handles();
+	assert(tag_handles.size() == 4);
 
-	for (uint32_t i = 0, n = tag_handle_proxy.size; i < n; i++)
+	for (uint32_t i = 0, n = tag_handles.size(); i < n; i++)
 	{
-		const uint32_t dense_index = tag_handle_proxy.handles[i].index();
+		const uint32_t dense_index = tag_handles[i].index();
 		const bob::entity_handle handle = bob::entity_handle(i);
 
-		assert(tag_handle_proxy.handles[dense_index] == handle);
+		assert(tag_handles[dense_index] == handle);
 	}
 
-	const bob::component_proxy<Tag> tag_component_proxy = tag_sparse.get_components();
-	assert(tag_component_proxy.size == 4);
+	const std::vector<Tag> tag_components = tag_sparse.get_components();
+	assert(tag_components.size() == 4);
 
 	for (uint32_t i = 0; i < 4; i++)
 	{
@@ -132,55 +130,55 @@ void test_registry()
 	r.add<std::string>(third_handle, "third and last test string");
 
 
-	const bob::component_proxy<std::string> string_components = r.get_component<std::string>();
-	assert(string_components.size == 3);
+	const std::vector<std::string>& string_components = r.get_component<std::string>();
+	assert(string_components.size() == 3);
 
-	const bob::component_proxy<Vector2> vector_components = r.get_component<Vector2>();
-	assert(vector_components.size == 2);
+	const std::vector<Vector2>& vector_components = r.get_component<Vector2>();
+	assert(vector_components.size() == 2);
 
-	const bob::component_proxy<Tag> tag_components = r.get_component<Tag>();
-	assert(tag_components.size == 1);
+	const std::vector<Tag>& tag_components = r.get_component<Tag>();
+	assert(tag_components.size() == 1);
 
-	const bob::handle_proxy string_handle_proxy = r.get_handles<std::string>();
-	assert(string_handle_proxy.size == 3);
+	const std::vector<bob::entity_handle>& string_handles = r.get_handles<std::string>();
+	assert(string_handles.size() == 3);
 
 	std::cout << "STRING ONLY" << "\n";
-	for (uint32_t i = 0, n = string_handle_proxy.size; i < n; i++)
+	for (uint32_t i = 0, n = string_handles.size(); i < n; i++)
 	{
-		const uint32_t dense_index = string_handle_proxy.handles[i].index();
-		std::cout << dense_index << ": " << string_components.components[dense_index] << std::endl;
+		const uint32_t dense_index = string_handles[i].index();
+		std::cout << dense_index << ": " << string_components[dense_index] << std::endl;
 	}
 	std::cout << "\n";
 
-	const bob::handle_proxy string_vector_handle_proxy = r.get_handles<Vector2, std::string>();
-	assert(string_vector_handle_proxy.size == 2);
+	const std::vector<bob::entity_handle>& string_vector_handles = r.get_handles<Vector2, std::string>();
+	assert(string_vector_handles.size() == 2);
 
 	std::cout << "STRING AND VECTOR" << "\n";
-	for (uint32_t i = 0, n = string_vector_handle_proxy.size; i < n; i++)
+	// TODO: this is the wrong way to do it and will crash, the registry is missing a get sparse function
+	for (uint32_t i = 0, n = string_vector_handles.size(); i < n; i++)
 	{
-		const uint32_t dense_index = string_vector_handle_proxy.handles[i].index();
+		const uint32_t dense_index = string_vector_handles[i].index();
 		std::cout << dense_index << ": " <<
-			string_components.components[dense_index] << ", "
-			<< vector_components.components[dense_index].x << ", "
-			<< vector_components.components[dense_index].y
+			string_components[dense_index] << ", "
+			<< vector_components[dense_index].x << ", "
+			<< vector_components[dense_index].y
 			<< std::endl;
 	}
 	std::cout << "\n";
 
-	const bob::handle_proxy string_vector_tag_handle_proxy = r.get_handles<Tag, Vector2, std::string>();
-	assert(string_vector_tag_handle_proxy.size == 1);
+	const std::vector<bob::entity_handle>& string_vector_tag_handles = r.get_handles<Tag, Vector2, std::string>();
+	assert(string_vector_tag_handles.size() == 1);
 
 	std::cout << "STRING VECTOR AND TAG\n";
-	const uint32_t dense_index = string_vector_tag_handle_proxy.handles[0].index();
+	const uint32_t dense_index = string_vector_tag_handles[0].index();
 	std::cout
 		<< dense_index
 		<< ": "
-		<< string_components.components[dense_index]
+		<< string_components[dense_index]
 		<< ", "
-		<< vector_components.components[dense_index].x
+		<< vector_components[dense_index].x
 		<< ", "
-		<< vector_components.components[dense_index].y
-		<< tag_components.components[dense_index].text
+		<< vector_components[dense_index].y
 		<< std::endl;
 	std::cout << "\n";
 
