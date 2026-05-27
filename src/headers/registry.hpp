@@ -23,7 +23,10 @@ namespace bob
 
 			registry() : m_CurrentSparseSize(16)
 			{
-				static_assert(sizeof...(Component) > 0 && "BOB [registry][registry()]: no component types were passed in for registration");
+				static_assert(
+						sizeof...(Component) > 0 &&
+						"BOB [registry][registry()]: no component types were passed in for registration"
+						);
 				(this->m_RegisterComponent<Component>(), ...);
 
 				this->m_ExtendAllSparse();
@@ -51,7 +54,10 @@ namespace bob
 			template <typename... T>
 			void remove(const entity_handle handle) noexcept
 			{
-				static_assert(sizeof...(T) > 0 && "BOB [registry][remove()]: number of components to be removed must be more than 0");
+				static_assert(
+						sizeof...(T) > 0 &&
+						"BOB [registry][remove()]: number of components to be removed must be more than 0"
+						);
 				(this->m_RemoveComponent<T>(handle), ...);
 
 				this->m_HandleGenerator.invalidate_handle(handle);
@@ -79,6 +85,8 @@ namespace bob
 				but that is way above my paygrade. this might still be faster than manual iteration and a
 				virtual query but not sorting means that we're accessing m_Sets in an effectively arbitrary order
 				which would likely cause cache misses.
+
+				branch predictor go brrrrrrrrrrrrrrr
 				 */
 				handle_proxy smallest = this->m_GetHandleLayer<First>();
 
@@ -91,7 +99,8 @@ namespace bob
 			template <typename T>
 			component_proxy<T> get_component() noexcept
 			{
-
+				sparse_set<T>* concrete = this->m_DowncastSparse<T>();
+				return concrete.
 			}
 
 		private:
@@ -101,7 +110,10 @@ namespace bob
 				const size_t component_index = component_handle<T>();
 				this->m_Sets.resize(std::max(this->m_Sets.size(), component_index + 1));
 
-				assert(this->m_Sets[component_index] == nullptr && "BOB [registry][m_RegisterComponent()]: a component has been registered twice.");
+				assert(
+						this->m_Sets[component_index] == nullptr &&
+						"BOB [registry][m_RegisterComponent()]: a component has been registered twice."
+						);
 				this->m_Sets[component_index] = std::make_unique<sparse_set<T>>();
 			}
 

@@ -67,26 +67,37 @@ namespace bob
 
 			const uint32_t& sparse() const noexcept
 			{
-				assert(this->m_SparseSize != 0 && "BOB [sparse_set][sparse()]: cannot return reference to sparse when sparse size is 0");
+				assert(
+						this->m_SparseSize != 0 &&
+						"BOB [sparse_set][sparse()]: cannot return reference to sparse when sparse size is 0"
+						);
 				return *this->m_SparseBuffer;
 			}
 
 			handle_proxy get_handles() const noexcept
 			{
-				assert(this->m_DenseSize != 0 && "BOB [sparse_set][get_handles()]: cannot return reference to entity handles when dense size is 0");
+				assert(
+						this->m_DenseSize != 0 &&
+						"BOB [sparse_set][get_handles()]: cannot return reference to entity handles when dense size is 0"
+						);
 				return handle_proxy { this->m_DenseSize, this->m_HandleBuffer };
 			}
 
 			component_proxy<T> get_components() const noexcept
 			{
-				assert(this->m_DenseSize != 0 && "BOB [sparse_set][get_components()]: cannot return reference to components when dense size is 0");
+				assert(
+						this->m_DenseSize != 0 &&
+						"BOB [sparse_set][get_components()]: cannot return reference to components when dense size is 0"
+						);
 				return component_proxy<T>{ this->m_DenseSize, this->m_ComponentBuffer };
 			}
 
 			void extend_sparse(const size_t new_size) noexcept
 			{
-				assert(new_size > this->m_SparseSize && "BOB [sparse_set][extend_sparse()]: new_size cannot be smaller than current sparse size");
-				assert(new_size != this->m_SparseSize && "BOB [sparse_set][extend_sparse()]: new_size cannot be equal to current sparse size");
+				assert(
+						new_size > this->m_SparseSize &&
+						"BOB [sparse_set][extend_sparse()]: new_size cannot be smaller than current sparse size"
+						);
 
 				uint32_t* new_sparse_buffer = this->m_IndexAllocator.allocate(new_size);
 				std::memcpy(new_sparse_buffer, this->m_SparseBuffer, this->m_SparseSize * sizeof(uint32_t));
@@ -102,7 +113,10 @@ namespace bob
 			template <typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
-				assert(this->m_DenseSize < this->m_SparseSize && "BOB [sparse_set][add()]: dense size cannot be larger than sparse size");
+				assert(
+						this->m_DenseSize < this->m_SparseSize &&
+						"BOB [sparse_set][add()]: dense size cannot be larger than sparse size"
+						);
 
 				if (this->m_DenseSize + 1 > this->m_DenseCapacity)
 				{
@@ -153,7 +167,10 @@ namespace bob
 		private:
 			void m_ExtendHandleBuffer(const size_t new_capacity) noexcept
 			{
-				assert(new_capacity > this->m_DenseCapacity && "BOB [sparse_set][m_ExtendHandleBuffer()]: new_capacity must be larger than current capacity");
+				assert(
+						new_capacity > this->m_DenseCapacity &&
+						"BOB [sparse_set][m_ExtendHandleBuffer()]: new_capacity must be larger than current capacity"
+						);
 
 				bob::entity_handle* new_handle_buffer = this->m_HandleAllocator.allocate(new_capacity);
 				std::memcpy(new_handle_buffer, this->m_HandleBuffer, this->m_DenseSize * sizeof(bob::entity_handle));
@@ -163,7 +180,10 @@ namespace bob
 
 			void m_ExtendComponentBuffer(const size_t new_capacity) noexcept
 			{
-				assert(new_capacity > this->m_DenseCapacity && "BOB [sparse_set][m_ExtendComponentBuffer()]: new_capacity must be larger than current capacity");
+				assert(
+						new_capacity > this->m_DenseCapacity &&
+						"BOB [sparse_set][m_ExtendComponentBuffer()]: new_capacity must be larger than current capacity"
+						);
 
 				T* new_component_buffer = this->m_ComponentAllocator.allocate(new_capacity);
 
