@@ -90,7 +90,7 @@ void test_sparse_set()
 	const std::vector<bob::entity_handle>& tag_handles = tag_sparse.get_handles();
 	assert(tag_handles.size() == 4);
 
-	for (uint32_t i = 0, n = tag_handles.size(); i < n; i++)
+	for (uint32_t i = 0, n = static_cast<uint32_t>(tag_handles.size()); i < n; i++)
 	{
 		const uint32_t dense_index = tag_handles[i].index();
 		const bob::entity_handle handle = bob::entity_handle(i);
@@ -98,7 +98,7 @@ void test_sparse_set()
 		assert(tag_handles[dense_index] == handle);
 	}
 
-	const std::vector<Tag> tag_components = tag_sparse.get_components();
+	const std::vector<Tag> tag_components = tag_sparse.get_raw_components();
 	assert(tag_components.size() == 4);
 
 	for (uint32_t i = 0; i < 4; i++)
@@ -110,7 +110,8 @@ void test_sparse_set()
 
 void test_registry()
 {
-	bob::registry<Tag, Vector2, std::string> r;
+	using registry_type = bob::registry<Tag, Vector2, std::string>;
+	registry_type r{};
 
 	const bob::entity_handle first_handle = r.get_new_handle();
 	assert(first_handle == bob::entity_handle(0));
@@ -129,62 +130,75 @@ void test_registry()
 	r.add<Vector2>(third_handle, 12.0f, 14.0f);
 	r.add<std::string>(third_handle, "third and last test string");
 
-
-	const std::vector<std::string>& string_components = r.get_component<std::string>();
+	const auto& string_set = r.get_sparse_set<std::string>();
+	const auto& string_components = string_set.get_raw_components();
 	assert(string_components.size() == 3);
 
-	const std::vector<Vector2>& vector_components = r.get_component<Vector2>();
+	const auto& vector_set = r.get_sparse_set<Vector2>();
+	const auto& vector_components = vector_set.get_raw_components();
 	assert(vector_components.size() == 2);
 
-	const std::vector<Tag>& tag_components = r.get_component<Tag>();
+	const auto& tag_set = r.get_sparse_set<Tag>();
+	const auto& tag_components = tag_set.get_raw_components();
 	assert(tag_components.size() == 1);
 
-	const std::vector<bob::entity_handle>& string_handles = r.get_handles<std::string>();
+	const auto& string_handles = r.get_iterator<std::string>();
 	assert(string_handles.size() == 3);
 
+
 	std::cout << "STRING ONLY" << "\n";
-	for (uint32_t i = 0, n = string_handles.size(); i < n; i++)
+	for (uint32_t i = 0, n = static_cast<uint32_t>(string_handles.size()); i < n; i++)
 	{
-		const uint32_t dense_index = string_handles[i].index();
-		std::cout << dense_index << ": " << string_components[dense_index] << std::endl;
+		const bob::entity_handle handle = string_handles[i];
+		std::cout << handle.index() << ": " << string_set[handle] << std::endl;
 	}
 	std::cout << "\n";
 
-	const std::vector<bob::entity_handle>& string_vector_handles = r.get_handles<Vector2, std::string>();
+
+	const auto& string_vector_handles = r.get_iterator<Vector2, std::string>();
 	assert(string_vector_handles.size() == 2);
 
 	std::cout << "STRING AND VECTOR" << "\n";
-	// TODO: this is the wrong way to do it and will crash, the registry is missing a get sparse function
-	for (uint32_t i = 0, n = string_vector_handles.size(); i < n; i++)
+	for (uint32_t i = 0, n = static_cast<uint32_t>(string_vector_handles.size()); i < n; i++)
 	{
-		const uint32_t dense_index = string_vector_handles[i].index();
-		std::cout << dense_index << ": " <<
-			string_components[dense_index] << ", "
-			<< vector_components[dense_index].x << ", "
-			<< vector_components[dense_index].y
+		const bob::entity_handle handle = string_vector_handles[i];
+
+		std::cout << handle.index() << ": " <<
+			string_set[handle] << ", "
+			<< vector_set[handle].x << ", "
+			<< vector_set[handle].y
 			<< std::endl;
 	}
 	std::cout << "\n";
 
-	const std::vector<bob::entity_handle>& string_vector_tag_handles = r.get_handles<Tag, Vector2, std::string>();
+
+	const auto& string_vector_tag_handles = r.get_iterator<Tag, Vector2, std::string>();
 	assert(string_vector_tag_handles.size() == 1);
 
 	std::cout << "STRING VECTOR AND TAG\n";
-	const uint32_t dense_index = string_vector_tag_handles[0].index();
+	const bob::entity_handle handle = string_vector_tag_handles[0];
 	std::cout
-		<< dense_index
+		<< handle.index()
 		<< ": "
-		<< string_components[dense_index]
+		<< string_set[handle]
 		<< ", "
-		<< vector_components[dense_index].x
+		<< vector_set[handle].x
 		<< ", "
-		<< vector_components[dense_index].y
+		<< vector_set[handle].y
 		<< std::endl;
 	std::cout << "\n";
 
 	r.remove<Tag, Vector2, std::string>(third_handle);
+	const auto& string_vector_tag_after_r_handles = r.get_iterator<Tag, Vector2, std::string>();
+	assert(string_vector_tag_after_r_handles.size() == 0);
+
 	r.remove<Vector2, std::string>(second_handle);
+	const auto& string_vector_after_r_handles = r.get_iterator<Vector2, std::string>();
+	assert(string_vector_after_r_handles.size() == 0);
+
 	r.remove<std::string>(first_handle);
+	const auto& string_after_r_handles = r.get_iterator<std::string>();
+	assert(string_vector_after_r_handles.size() == 0);
 }
 
 int main(void)
@@ -196,5 +210,5 @@ int main(void)
 	test_sparse_set();
 	std::cout << "sparse_set tests passed!" << std::endl; 
 	test_registry();
-	std::cout << "registry tests passed!" << std::endl; 
+	std::cout << "registry tests didn't crash! check output." << std::endl; 
 }

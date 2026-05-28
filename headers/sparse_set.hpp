@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cassert>
-#include <cstring>
 #include <utility>
 #include <algorithm>
 
@@ -53,7 +52,9 @@ namespace bob
 						"BOB [sparse_set][operator[]]: handle is invalid"
 						);
 
-				const uint32_t dense_index = handle.index();
+				// i spent hours just to finally realise that i did handle.index()
+				// instead of translating the external index to internal
+				const uint32_t dense_index = this->m_SparseBuffer[handle.index()];
 
 				assert(
 						dense_index < this->m_SparseBuffer.size() &&
@@ -65,7 +66,7 @@ namespace bob
 						"BOB [sparse_set][operator[]]: handle resolved to entity of different generations"
 						);
 
-				return *this->m_ComponentBuffer[dense_index];
+				return this->m_ComponentBuffer[dense_index];
 			}
 
 			T& operator[] (const entity_handle handle) noexcept
@@ -88,13 +89,14 @@ namespace bob
 				return this->m_ComponentBuffer;
 			}
 
+			//NOTE: do NOT call add and remove directly. it is best to go through the registry.
 			template <typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
 				if (handle.index() >= this->m_SparseBuffer.size())
 					this->m_SparseBuffer.resize(handle.index() + 1, invalid_index);
-				
-				this->m_SparseBuffer[handle.index()] = this->m_HandleBuffer.size();
+
+				this->m_SparseBuffer[handle.index()] = static_cast<uint32_t>(this->m_HandleBuffer.size());
 				this->m_HandleBuffer.emplace_back(handle);
 				this->m_ComponentBuffer.emplace_back(std::forward<Arg>(args)...);
 			}
@@ -112,16 +114,19 @@ namespace bob
 						);
 
 				const bob::entity_handle moving_entity = this->m_HandleBuffer.back();
-				const uint32_t last_dense_index = this->m_HandleBuffer.size() - 1;
+				const uint32_t last_dense_index = static_cast<uint32_t>(this->m_HandleBuffer.size()) - 1;
 
 				if (entity_dense_index != last_dense_index)
 				{
-					std::swap(this->m_ComponentBuffer[last_dense_index], this->m_ComponentBuffer[entity_dense_index]);
 					std::swap(this->m_HandleBuffer[last_dense_index], this->m_HandleBuffer[entity_dense_index]);
+					std::swap(this->m_ComponentBuffer[last_dense_index], this->m_ComponentBuffer[entity_dense_index]);
 				}
 
 				this->m_SparseBuffer[moving_entity.index()] = entity_dense_index;
 				this->m_SparseBuffer[handle.index()] = invalid_index;
+
+				this->m_HandleBuffer.pop_back();
+				this->m_ComponentBuffer.pop_back();
 			}
 
 		private:
