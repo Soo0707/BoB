@@ -56,7 +56,7 @@ namespace bob
 			}
 			
 			template <typename First, typename... After>
-			const std::vector<entity_handle>& get_handles() const noexcept
+			const std::vector<entity_handle>& get_iterator() const noexcept
 			{
 				/*
 				TODO: it might be a good idea to sort the arbitrary ordered components at compile time
@@ -76,12 +76,17 @@ namespace bob
 
 				return *smallest;
 			}
-			// TODO: get sparse function so that we can use handles to translate into dense layer
+			
 			template <typename T>
-			std::vector<T>& get_component() noexcept
+			const sparse_set<T>& get_sparse_set() const noexcept
 			{
-				sparse_set<T>& concrete = m_DowncastSparse<T>();
-				return concrete.get_components();
+				return this->m_DowncastSparse<T>();
+			}
+
+			template <typename T>
+			sparse_set<T>& get_sparse_set() noexcept
+			{
+				return this->m_DowncastSparse<T>();
 			}
 
 		private:

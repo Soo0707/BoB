@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cassert>
 #include <cstring>
+#include <utility>
 #include <algorithm>
 
 #include "entity_handle.hpp"
@@ -45,17 +46,44 @@ namespace bob
 				return *this;
 			}
 
+			const T& operator[] (const entity_handle handle) const noexcept
+			{
+				assert(
+						handle != invalid_handle &&
+						"BOB [sparse_set][operator[]]: handle is invalid"
+						);
+
+				const uint32_t dense_index = handle.index();
+
+				assert(
+						dense_index < this->m_SparseBuffer.size() &&
+						"BOB [sparse_set][operator[]]: handle index is larger than sparse buffer"
+						);
+
+				assert(
+						handle == this->m_HandleBuffer[dense_index] &&
+						"BOB [sparse_set][operator[]]: handle resolved to entity of different generations"
+						);
+
+				return *this->m_ComponentBuffer[dense_index];
+			}
+
+			T& operator[] (const entity_handle handle) noexcept
+			{
+				return const_cast<T&>(std::as_const(*this)[handle]);
+			}
+
 			const std::vector<entity_handle>& get_handles() const noexcept
 			{
 				return this->m_HandleBuffer;
 			}
-/*
-			const std::vector<T>& get_components() const noexcept
+
+			const std::vector<T>& get_raw_components() const noexcept
 			{
 				return this->m_ComponentBuffer;
 			}
-*/
-			std::vector<T>& get_components() noexcept
+
+			std::vector<T>& get_raw_components() noexcept
 			{
 				return this->m_ComponentBuffer;
 			}
@@ -95,9 +123,9 @@ namespace bob
 				this->m_SparseBuffer[moving_entity.index()] = entity_dense_index;
 				this->m_SparseBuffer[handle.index()] = invalid_index;
 			}
-			std::vector<uint32_t> m_SparseBuffer;
 
 		private:
+			std::vector<uint32_t> m_SparseBuffer;
 			std::vector<entity_handle> m_HandleBuffer;
 			std::vector<T> m_ComponentBuffer;
 	};
