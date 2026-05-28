@@ -147,11 +147,8 @@ void test_registry()
 
 
 	std::cout << "STRING ONLY" << "\n";
-	for (uint32_t i = 0, n = static_cast<uint32_t>(string_handles.size()); i < n; i++)
-	{
-		const bob::entity_handle handle = string_handles[i];
-		std::cout << handle.index() << ": " << string_set[handle] << std::endl;
-	}
+	for (auto i : string_handles)
+		std::cout << i.index() << ": " << string_set[i] << std::endl;
 	std::cout << "\n";
 
 

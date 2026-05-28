@@ -45,6 +45,40 @@ namespace bob
 				return *this;
 			}
 
+			bool has(const entity_handle handle) const noexcept
+			{
+				if (handle == invalid_handle)
+					return false;
+				
+				if (handle.index() > static_cast<uint32_t>(this->m_SparseBuffer.size()))
+					return false;
+
+				const uint32_t dense_index = this->m_SparseBuffer[handle.index()];
+
+				if (dense_index > this->m_HandleBuffer.size())
+					return false;
+
+				const entity_handle stored_handle = this->m_HandleBuffer[dense_index];
+
+				if (handle != stored_handle)
+					return false;
+
+				return true;
+			}
+
+			const T* try_get(const entity_handle handle) const noexcept
+			{
+				if (this->has(handle))
+					return this[handle];
+
+				return nullptr;
+			}
+
+			T* try_get(const entity_handle handle) noexcept
+			{
+				return const_cast<T*>(std::as_const(*this).try_get(handle));
+			}
+
 			const T& operator[] (const entity_handle handle) const noexcept
 			{
 				assert(
@@ -52,18 +86,23 @@ namespace bob
 						"BOB [sparse_set][operator[]]: handle is invalid"
 						);
 
+				assert (
+						handle.index() < this->m_SparseBuffer.size() &&
+						"BOB [sparse_set][operator[]]: received handle which indexed out of bounds into sparse buffer"
+						);
+
 				// i spent hours just to finally realise that i did handle.index()
 				// instead of translating the external index to internal
 				const uint32_t dense_index = this->m_SparseBuffer[handle.index()];
 
 				assert(
-						dense_index < this->m_SparseBuffer.size() &&
-						"BOB [sparse_set][operator[]]: handle index is larger than sparse buffer"
+						dense_index < this->m_HandleBuffer.size() &&
+						"BOB [sparse_set][operator[]]: handle index is larger than dense buffer"
 						);
 
 				assert(
 						handle == this->m_HandleBuffer[dense_index] &&
-						"BOB [sparse_set][operator[]]: handle resolved to entity of different generations"
+						"BOB [sparse_set][operator[]]: handle resolved to entity of different generation or invalid index"
 						);
 
 				return this->m_ComponentBuffer[dense_index];
