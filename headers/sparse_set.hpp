@@ -22,7 +22,6 @@ namespace bob
 	{
 		public:
 			sparse_set() = default;
-
 			~sparse_set() override = default;
 
 			sparse_set(const sparse_set&) = delete;
@@ -118,12 +117,12 @@ namespace bob
 				return this->m_HandleBuffer;
 			}
 
-			const std::vector<T>& get_raw_components() const noexcept
+			const std::vector<T>& get_components() const noexcept
 			{
 				return this->m_ComponentBuffer;
 			}
 
-			std::vector<T>& get_raw_components() noexcept
+			std::vector<T>& get_components() noexcept
 			{
 				return this->m_ComponentBuffer;
 			}
@@ -166,6 +165,13 @@ namespace bob
 
 				this->m_HandleBuffer.pop_back();
 				this->m_ComponentBuffer.pop_back();
+			}
+
+			void reserve(const size_t new_size) noexcept
+			{
+				this->m_SparseBuffer(new_size);
+				this->m_HandleBuffer(new_size);
+				this->m_ComponentBuffer(new_size);
 			}
 
 		private:

@@ -98,7 +98,7 @@ void test_sparse_set()
 		assert(tag_handles[dense_index] == handle);
 	}
 
-	const std::vector<Tag> tag_components = tag_sparse.get_raw_components();
+	const std::vector<Tag> tag_components = tag_sparse.get_components();
 	assert(tag_components.size() == 4);
 
 	for (uint32_t i = 0; i < 4; i++)
@@ -131,15 +131,15 @@ void test_registry()
 	r.add<std::string>(third_handle, "third and last test string");
 
 	const auto& string_set = r.get_sparse_set<std::string>();
-	const auto& string_components = string_set.get_raw_components();
+	const auto& string_components = string_set.get_components();
 	assert(string_components.size() == 3);
 
 	const auto& vector_set = r.get_sparse_set<Vector2>();
-	const auto& vector_components = vector_set.get_raw_components();
+	const auto& vector_components = vector_set.get_components();
 	assert(vector_components.size() == 2);
 
 	const auto& tag_set = r.get_sparse_set<Tag>();
-	const auto& tag_components = tag_set.get_raw_components();
+	const auto& tag_components = tag_set.get_components();
 	assert(tag_components.size() == 1);
 
 	const auto& string_handles = r.get_iterator<std::string>();
