@@ -10,6 +10,7 @@
 namespace bob
 {
 	class thread_pool;
+	// TODO: probably align this to avoid false sharing. that might be an issue. idk if vector already does.
 	struct job_wrapper
 	{
 		void* data;
@@ -73,8 +74,10 @@ namespace bob
 				// +1 bc we actually have 1 more thread, the one executing this function
 				const uint32_t job_size = static_cast<uint32_t>(data.size()) / (n_threads + 1);
 				uint32_t last_job_end = 0;
-				
-				this->m_Jobs.clear();
+
+				// this is a bitch. order matters. put it at the end and it'll crash.
+				// tldr, don't touch this
+				this->m_Jobs.clear(); 
 
 				for (size_t i = 0; i < n_threads; i++)
 				{
@@ -85,7 +88,7 @@ namespace bob
 				}
 
 				this->m_StartBarrier.arrive_and_wait();
-				this->m_ProcessSingle(data, std::forward<F>(callback), last_job_end, data.size());
+				this->m_ProcessSingle(data, callback, last_job_end, data.size());
 				this->m_EndBarrier.arrive_and_wait();
 			}
 
