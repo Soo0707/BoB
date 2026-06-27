@@ -4,6 +4,7 @@ g++ test.cpp\
 	-o /mnt/tmpfs/test\
 	-std=c++20\
 	-O3\
+	-g\
 	-Iheaders\
 	-fno-omit-frame-pointer\
 	-fsanitize=address\
@@ -12,4 +13,6 @@ g++ test.cpp\
 	-D_GLIBCXX_DEBUG\
 	-Wshadow\
 	-Wconversion\
+	-march=native\
+	#-fsanitize=thread\
 	#-DNDEBUG

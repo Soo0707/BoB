@@ -29,12 +29,12 @@ namespace bob
 				return this->m_Handle;
 			}
 
-			[[nodiscard]] constexpr bool operator== (const entity_handle other) const noexcept
+			[[nodiscard]] constexpr bool operator==(const entity_handle other) const noexcept
 			{
 				return this->m_Handle == other.m_Handle;
 			}
 
-			[[nodiscard]] constexpr bool operator!= (const entity_handle other) const noexcept
+			[[nodiscard]] constexpr bool operator!=(const entity_handle other) const noexcept
 			{
 				return this->m_Handle != other.m_Handle;
 			}

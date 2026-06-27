@@ -127,7 +127,7 @@ namespace bob
 				return this->m_ComponentBuffer;
 			}
 
-			//NOTE: do NOT call add and remove directly. it is best to go through the registry.
+			// NOTE: do NOT call add and remove directly. it is best to go through the registry.
 			template <typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
@@ -169,9 +169,9 @@ namespace bob
 
 			void reserve(const size_t new_size) noexcept
 			{
-				this->m_SparseBuffer(new_size);
-				this->m_HandleBuffer(new_size);
-				this->m_ComponentBuffer(new_size);
+				this->m_SparseBuffer.reserve(new_size);
+				this->m_HandleBuffer.reserve(new_size);
+				this->m_ComponentBuffer.reserve(new_size);
 			}
 
 		private:
