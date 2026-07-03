@@ -90,7 +90,7 @@ namespace bob
 
 		private:
 			template <typename T, size_t Index = 0>
-			constexpr size_t m_ComponentHandle() const noexcept
+			consteval size_t m_ComponentHandle() const noexcept
 			{
 				static_assert(
 						Index < std::tuple_size_v<component_types> &&

@@ -112,11 +112,6 @@ namespace bob
 				return const_cast<T&>(std::as_const(*this)[handle]);
 			}
 
-			const std::vector<entity_handle>& get_handles() const noexcept
-			{
-				return this->m_HandleBuffer;
-			}
-
 			const std::vector<T>& get_components() const noexcept
 			{
 				return this->m_ComponentBuffer;
@@ -125,6 +120,11 @@ namespace bob
 			std::vector<T>& get_components() noexcept
 			{
 				return this->m_ComponentBuffer;
+			}
+			
+			const std::vector<entity_handle>& get_handles() const noexcept
+			{
+				return this->m_HandleBuffer;
 			}
 
 			// NOTE: do NOT call add and remove directly. it is best to go through the registry.

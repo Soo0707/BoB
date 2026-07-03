@@ -42,7 +42,7 @@ namespace bob
 
 			void invalidate_handle(const entity_handle handle) noexcept
 			{
-				// TODO: this function accepts duplicates which is unavoidable without a linear scan
+				// NOTE: this function accepts duplicates which is unavoidable without a linear scan
 				assert(
 						handle.index() < this->m_NextIndex &&
 						"BOB [entity_handle_generator][invalidate_handle()]: invalidated handle that was never handed out"

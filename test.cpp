@@ -200,13 +200,13 @@ void test_thread_pool()
 	auto& data_sparse_set = r.get_sparse_set<uint32_t>();
 	auto& dense_layer = data_sparse_set.get_components();
 
-	//auto start = std::chrono::high_resolution_clock::now();
+	auto start = std::chrono::high_resolution_clock::now();
 	pool.parallelise(dense_layer, [](uint32_t& data, size_t i){ data *= 2; }, 1);
-	/*
+	
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "Function took " << duration.count() << " ms to complete.\n";
-*/
+
 	for (size_t i = 0, n = dense_layer.size(); i < n; ++i)
 		assert(dense_layer[i] == 2 * i && "data was not modified");
 }
