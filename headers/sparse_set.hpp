@@ -11,18 +11,12 @@
 
 namespace bob
 {
-	struct abstract_sparse_set
-	{
-		abstract_sparse_set() = default;
-		virtual ~abstract_sparse_set() = default;
-	};
-
 	template <typename T>
-	class sparse_set : public abstract_sparse_set
+	class sparse_set
 	{
 		public:
 			sparse_set() = default;
-			~sparse_set() override = default;
+			~sparse_set() = default;
 
 			sparse_set(const sparse_set&) = delete;
 			sparse_set(sparse_set&& other) noexcept

@@ -26,8 +26,6 @@ namespace bob
 						sizeof...(Component) > 0 &&
 						"BOB [registry][registry()]: no component types were passed in for registration"
 						);
-
-				(m_RegisterComponent<Component>(), ...);
 			}
 
 			entity_handle get_new_handle() noexcept
@@ -38,7 +36,7 @@ namespace bob
 			template <typename T, typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
-				sparse_set<T>& concrete_set = m_DowncastSparse<T>();
+				sparse_set<T>& concrete_set = std::get<sparse_set<T>>(this->m_Sets);
 				concrete_set.add(handle, std::forward<Arg>(args)...);
 			}
 
@@ -79,13 +77,14 @@ namespace bob
 			template <typename T>
 			const sparse_set<T>& get_sparse_set() const noexcept
 			{
-				return this->m_DowncastSparse<T>();
+				return std::get<sparse_set<T>>(this->m_Sets);
 			}
 
 			template <typename T>
 			sparse_set<T>& get_sparse_set() noexcept
 			{
-				return this->m_DowncastSparse<T>();
+				// if i looked up the syntax i might as well use it.
+				return const_cast<sparse_set<T>&>(std::as_const(*this).template get_sparse_set<T>());
 			}
 
 		private:
@@ -104,50 +103,16 @@ namespace bob
 			}
 
 			template <typename T>
-			void m_RegisterComponent() noexcept
-			{
-				const size_t component_index = m_ComponentHandle<T>();
-				this->m_Sets.resize(std::max(this->m_Sets.size(), component_index + 1));
-
-				assert(
-						this->m_Sets[component_index] == nullptr &&
-						"BOB [registry][m_RegisterComponent()]: a component has been registered twice."
-						);
-				this->m_Sets[component_index] = std::make_unique<sparse_set<T>>();
-			}
-			
-			template <typename T>
-			const sparse_set<T>& m_DowncastSparse() const noexcept
-			{
-				constexpr size_t component_index = m_ComponentHandle<T>();
-
-				assert(
-						component_index < this->m_Sets.size() &&
-						"BOB [registry][m_DowncastSparse()]: component_index less than register internal set size. did you forget to register a component?"
-						);
-
-				abstract_sparse_set* base_ptr = this->m_Sets[component_index].get();
-				const sparse_set<T>* child_ptr = static_cast<sparse_set<T>*>(base_ptr);
-
-				return *child_ptr;
-			}
-
-			template <typename T>
-			sparse_set<T>& m_DowncastSparse() noexcept
-			{
-				return const_cast<sparse_set<T>&>(std::as_const(*this).template m_DowncastSparse<T>());
-			}
-
-			template <typename T>
 			const std::vector<entity_handle>& m_GetHandleLayer() const noexcept
 			{
-				const sparse_set<T>& concrete_set = m_DowncastSparse<T>();
+				const sparse_set<T>& concrete_set = std::get<sparse_set<T>>(this->m_Sets);
 				return concrete_set.get_handles();
 			}
 
 			template <typename T>
 			std::vector<entity_handle>& m_GetHandleLayer() noexcept
 			{
+				// i looked up the syntax for this. man.
 				return const_cast<sparse_set<T>&>(std::as_const(*this).template m_GetHandleLayer());
 			}
 
@@ -161,11 +126,11 @@ namespace bob
 			template <typename T>
 			void m_RemoveComponent(const entity_handle handle) noexcept
 			{
-				sparse_set<T>& concrete_set = m_DowncastSparse<T>();
+				sparse_set<T>& concrete_set = std::get<sparse_set<T>>(this->m_Sets);
 				concrete_set.remove(handle);
 			}
 
-			std::vector<std::unique_ptr<abstract_sparse_set>> m_Sets;
+			std::tuple<sparse_set<Component>...> m_Sets;
 			entity_handle_generator m_HandleGenerator;
 	};
 };
