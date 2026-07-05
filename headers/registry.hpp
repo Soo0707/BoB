@@ -18,7 +18,7 @@ namespace bob
 	class registry
 	{
 		public:
-			using component_types = std::tuple<Component...>;
+			using components = std::tuple<Component...>;
 
 			registry()
 			{
@@ -88,15 +88,16 @@ namespace bob
 			}
 
 		private:
+			// TODO: this is not used anymore but i want to have a go at trying to sort the elements.
 			template <typename T, size_t Index = 0>
 			consteval size_t m_ComponentHandle() const noexcept
 			{
 				static_assert(
-						Index < std::tuple_size_v<component_types> &&
+						Index < std::tuple_size_v<components> &&
 						"BOB [registry][m_ComponentHandle()]: could not resolve component handle to index. did you forget to register a component?"
 						);
 
-				if constexpr (std::is_same_v<T, std::tuple_element_t<Index, component_types>>)
+				if constexpr (std::is_same_v<T, std::tuple_element_t<Index, components>>)
 					return Index;
 				else
 					return m_ComponentHandle<T, Index + 1>();
@@ -107,13 +108,6 @@ namespace bob
 			{
 				const sparse_set<T>& concrete_set = std::get<sparse_set<T>>(this->m_Sets);
 				return concrete_set.get_handles();
-			}
-
-			template <typename T>
-			std::vector<entity_handle>& m_GetHandleLayer() noexcept
-			{
-				// i looked up the syntax for this. man.
-				return const_cast<sparse_set<T>&>(std::as_const(*this).template m_GetHandleLayer());
 			}
 
 			template <typename T>
