@@ -1,12 +1,12 @@
 #ifndef BOB_THREAD_POOL
 #define BOB_THREAD_POOL
 
-#include <vector>
-#include <thread>
+#include <barrier>
 #include <cassert>
 #include <cstddef>
-#include <barrier>
 #include <new>
+#include <thread>
+#include <vector>
 
 namespace bob
 {

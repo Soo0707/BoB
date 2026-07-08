@@ -3,10 +3,10 @@
 
 #include <string>
 
-#include "entity_handle.hpp"
 #include "entity_handle_generator.hpp"
-#include "sparse_set.hpp"
+#include "entity_handle.hpp"
 #include "registry.hpp"
+#include "sparse_set.hpp"
 #include "thread_pool.hpp"
 
 struct Vector2

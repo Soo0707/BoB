@@ -1,11 +1,11 @@
 #ifndef BOB_SPARSE_SET
 #define BOB_SPARSE_SET
 
+#include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cassert>
 #include <utility>
-#include <algorithm>
 
 #include "entity_handle.hpp"
 

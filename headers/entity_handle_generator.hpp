@@ -1,8 +1,8 @@
 #ifndef BOB_ENTITY_HANDLE_GENERATOR
 #define BOB_ENTITY_HANDLE_GENERATOR
 
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
 #include <vector>
 
 #include "entity_handle.hpp"

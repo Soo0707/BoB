@@ -1,16 +1,14 @@
 #ifndef BOB_REGISTRY
 #define BOB_REGISTRY
 
-#include <vector>
-#include <cstddef>
 #include <cassert>
-#include <memory>
+#include <cstddef>
 #include <tuple>
-#include <utility>
+#include <vector>
 
-#include "sparse_set.hpp"
-#include "entity_handle.hpp"
 #include "entity_handle_generator.hpp"
+#include "entity_handle.hpp"
+#include "sparse_set.hpp"
 
 namespace bob
 {
@@ -88,21 +86,6 @@ namespace bob
 			}
 
 		private:
-			// TODO: this is not used anymore but i want to have a go at trying to sort the elements.
-			template <typename T, size_t Index = 0>
-			consteval size_t m_ComponentHandle() const noexcept
-			{
-				static_assert(
-						Index < std::tuple_size_v<components> &&
-						"BOB [registry][m_ComponentHandle()]: could not resolve component handle to index. did you forget to register a component?"
-						);
-
-				if constexpr (std::is_same_v<T, std::tuple_element_t<Index, components>>)
-					return Index;
-				else
-					return m_ComponentHandle<T, Index + 1>();
-			}
-
 			template <typename T>
 			const std::vector<entity_handle>& m_GetHandleLayer() const noexcept
 			{
