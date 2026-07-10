@@ -5,7 +5,7 @@ g++ test.cpp\
 	-std=c++20\
 	-O3\
 	-g\
-	-Iheaders\
+	-Iinclude\
 	-fno-omit-frame-pointer\
 	-fsanitize=address\
 	-fsanitize=undefined\
