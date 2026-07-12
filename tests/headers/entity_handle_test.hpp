@@ -14,6 +14,7 @@ class EntityHandleTest
 			this->m_ZeroHandle();
 			this->m_SixHandle();
 			this->m_SeventhGeneration();
+
 			this->m_Mixed();
 			this->m_Equality();
 			this->m_Inequality();

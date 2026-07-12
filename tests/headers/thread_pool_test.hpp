@@ -1,28 +1,71 @@
+#ifndef BOB_THREAD_POOL_TEST
+#define BOB_THREAD_POOL_TEST
+
 #include "bob/thread_pool.hpp"
 
-using thread_registry = bob::registry<uint32_t>;
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <cassert>
 
-void test_thread_pool()
+class ThreadPoolTest
 {
-	thread_registry r{};
-	bob::thread_pool pool = bob::thread_pool(std::thread::hardware_concurrency());
+	public:
+		ThreadPoolTest() :
+			m_Pool(std::thread::hardware_concurrency())
+		{
+			this->m_TestParallelise();
+			this->m_TestSingle();
+		}
 
-	for (size_t i = 0; i < 1048575; ++i)
-	{
-		const bob::entity_handle handle = r.get_new_handle();
-		r.add<uint32_t>(handle, i);
-	}
+	private:
+		void m_TestParallelise()
+		{
+			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-	auto& data_sparse_set = r.get_sparse_set<uint32_t>();
-	auto& dense_layer = data_sparse_set.get_components();
+			std::vector<size_t> data_vector;
 
-	auto start = std::chrono::high_resolution_clock::now();
-	pool.parallelise(dense_layer, [](uint32_t& data, size_t i){ data *= 2; }, 1);
+			for (size_t i = 0; i < 1048575; ++i)
+				data_vector.emplace_back(i);
+
+			auto start = std::chrono::high_resolution_clock::now();
 	
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "Function took " << duration.count() << " ms to complete.\n";
+			this->m_Pool.parallelise(data_vector, [](size_t& data, size_t i){ data *= 2; }, 1);
 
-	for (size_t i = 0, n = dense_layer.size(); i < n; ++i)
-		assert(dense_layer[i] == 2 * i && "data was not modified");
-}
+			auto end = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+			std::cout << "Chunking took " << duration << "\n"; 
+
+			for (size_t i = 0, n = data_vector.size(); i < n; ++i)
+				assert(data_vector[i] == 2 * i);
+
+			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+		}
+
+		void m_TestSingle()
+		{
+			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
+
+			std::vector<size_t> data_vector;
+
+			for (size_t i = 0; i < 1048575; ++i)
+				data_vector.emplace_back(i);
+
+			auto start = std::chrono::high_resolution_clock::now();
+	
+			for (size_t i = 0, n = data_vector.size(); i < n; ++i)
+				data_vector[i] *= 2;
+
+			auto end = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+			std::cout << "Single threaded took " << duration << "\n"; 
+
+			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+		}
+
+		bob::thread_pool m_Pool;
+};
+
+#endif
