@@ -60,8 +60,11 @@ namespace bob
 			thread_pool& operator=(const thread_pool&) = delete;
 			thread_pool& operator=(thread_pool&&) = delete;
 
+			// we take in F as a copy to guarantee it is at the bottom of the stack frame. making a pointer is now safe again.
+			// F&& is not guaranteed to outlive this function so taking a pointer to F would be dangerous.
+			// i'm pretty sure copy-elison will help us out here anyway.
 			template <typename T, typename F>
-			void parallelise(std::vector<T>& data, F&& callback, const size_t grain = 20000) noexcept
+			void parallelise(std::vector<T>& data, F callback, const size_t grain = 20000) noexcept
 			{
 				if (data.size() < grain)
 				{
@@ -98,6 +101,7 @@ namespace bob
 			}
 
 		private:
+			// the way the callback is captured might be unsafe idk
 			template <typename T, typename F>
 			void m_ProcessChunk(const job_wrapper& job) const noexcept
 			{

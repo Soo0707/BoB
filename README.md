@@ -134,5 +134,5 @@ thread_pool(const size_t n)
 // callback function must have signature F(T& in) and should
 // contain the transformation to be applied for each element
 // this function is blocking
-void parallelise(std::vector<T>& data, F&& callback, const size_t grain = 20000)
+void parallelise(std::vector<T>& data, F callback, const size_t grain = 20000)
 ```
