@@ -22,14 +22,38 @@ BoB consists of:
 
 # Cheatsheet
 
-**Namespace:** bob::entity_handle
+**Namespace:** `bob::entity_handle`
+
+```c++
+// constructor
+entity_handle(const uint32_t) 
+
+// returns generation of handle
+uint32_t generation() const 
+
+// returns dense layer index of entity
+uint32_t index() const
+
+// returns raw value of entity handle
+uint32_t value() const
+```
+
+**Namespace:** `bob::registry`
 
 ```c++
 
-bob::entity_handle(const uint32_t) // constructor
+// returns next successive entity handle
+entity_handle get_new_handle()
 
-uint32_t generation() const // returns generation of handle
-uint32_t index() const // returns dense layer index of entity
-uint32_t value() const // returns raw value of entity handle
+// T = component type, args = arguments to construct T
+void add<T>(const entity_handle handle, Arg&&... args)
+
+// T = component type
+// removes all components specified in T... of entity and recycles its handle
+void remove<T...>(const entity_handle handle)
+
+// First and After are a list of components
+// Returns a vector of entity handles of the smallest sparse set which contain all components specified in First and After.
+const std::vector<entity_handle>& get_iterator<First, After...>() const
 
 ```

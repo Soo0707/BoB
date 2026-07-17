@@ -28,7 +28,7 @@ namespace bob
 
 			entity_handle get_new_handle() noexcept
 			{
-				return m_HandleGenerator.get_new_handle();
+				return this->m_HandleGenerator.get_new_handle();
 			}
 
 			template <typename T, typename... Arg>
