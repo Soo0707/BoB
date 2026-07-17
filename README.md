@@ -91,5 +91,6 @@ thread_pool(const size_t n)
 
 // chunk process a vector when its size is larger than grain
 // callback function must have signature F(T& in, size_t i)
+// this function is blocking
 void parallelise(std::vector<T>& data, F&& callback, const size_t grain = 20000)
 ```
