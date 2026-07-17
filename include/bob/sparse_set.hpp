@@ -72,7 +72,7 @@ namespace bob
 				return const_cast<T*>(std::as_const(*this).try_get(handle));
 			}
 
-			const T& operator[] (const entity_handle handle) const noexcept
+			const T& operator[](const entity_handle handle) const noexcept
 			{
 				assert(
 						handle != invalid_handle &&
@@ -101,7 +101,7 @@ namespace bob
 				return this->m_ComponentBuffer[dense_index];
 			}
 
-			T& operator[] (const entity_handle handle) noexcept
+			T& operator[](const entity_handle handle) noexcept
 			{
 				return const_cast<T&>(std::as_const(*this)[handle]);
 			}
@@ -161,6 +161,7 @@ namespace bob
 				this->m_ComponentBuffer.pop_back();
 			}
 
+			// TODO: improve this reserve function. this doesn't seem to meet real world needs.
 			void reserve(const size_t new_size) noexcept
 			{
 				this->m_SparseBuffer.reserve(new_size);

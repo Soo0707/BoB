@@ -25,6 +25,8 @@ namespace bob
 	class thread_pool
 	{
 		public:
+			thread_pool() = delete;
+
 			thread_pool(const size_t n) :
 				m_Barrier(n + 1), // +1 here because we're counting the main thread
 				m_Halt(false)

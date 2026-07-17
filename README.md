@@ -1,6 +1,6 @@
 <h1 align="center">BOB</h1>
 
-**BoB** (Bundle of Boilerplate) is a simple, barebones, **header only Sparse Set-based Entity Component System** written in **C++20**.
+**BoB** (Bundle of Boilerplate) is a simple, barebones, header only Sparse Set-based Entity Component System written in **C++20**.
 
 # Why BoB?
 
@@ -38,6 +38,27 @@ uint32_t index() const
 uint32_t value() const
 ```
 
+**Namespace:** `bob::sparse_set`
+
+```c++
+// NOTE: sparse_set is not copyable. only movable.
+
+// returns if an entity is in the sparse set
+bool has(const entity_handle) const
+
+// returns pointer to T if an entity is in the sparse set and nullptr otherwise
+T* try_get(const entity_handle)
+
+// returns reference to T by using operator[] and an entity handle
+T& operator[](const entity_handle handle)
+
+// returns reference to component layer
+std::vector<T>& get_components()
+
+// returns reference to handle layer
+const std::vector<entity_handle>& get_handles() const
+```
+
 **Namespace:** `bob::registry`
 
 ```c++
@@ -45,15 +66,30 @@ uint32_t value() const
 // returns next successive entity handle
 entity_handle get_new_handle()
 
-// T = component type, args = arguments to construct T
+// add component T to entity. args = arguments to construct T
 void add<T>(const entity_handle handle, Arg&&... args)
 
 // T = component type
-// removes all components specified in T... of entity and recycles its handle
+// removes all components specified in T of an entity and recycle its handle
 void remove<T...>(const entity_handle handle)
 
 // First and After are a list of components
-// Returns a vector of entity handles of the smallest sparse set which contain all components specified in First and After.
+// returns the entity handle layer of the smallest sparse set
+// which contains all components specified in First and After
 const std::vector<entity_handle>& get_iterator<First, After...>() const
 
+// returns a sparse set of component type T
+sparse_set<T>& get_sparse_set<T>()
+```
+
+**Namespace:** `bob::thread_pool`
+
+```c++
+
+// constructor. n = number of worker threads excluding main thread
+thread_pool(const size_t n)
+
+// chunk process a vector when its size is larger than grain
+// callback function must have signature F(T& in, size_t i)
+void parallelise(std::vector<T>& data, F&& callback, const size_t grain = 20000)
 ```
