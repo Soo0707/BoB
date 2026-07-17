@@ -30,7 +30,7 @@ class ThreadPoolTest
 
 			auto start = std::chrono::high_resolution_clock::now();
 	
-			this->m_Pool.parallelise(data_vector, [](size_t& data, size_t i){ data *= 2; }, 1);
+			this->m_Pool.parallelise(data_vector, [](size_t& data){ data *= 2; }, 1);
 
 			auto end = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);

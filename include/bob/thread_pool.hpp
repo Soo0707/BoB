@@ -102,13 +102,13 @@ namespace bob
 			void m_ProcessChunk(const job_wrapper& job) const noexcept
 			{
 				std::vector<T>& data = *static_cast<std::vector<T>*>(job.data);
-				F& callback = *static_cast<F*>(job.lambda);
+				const F& callback = *static_cast<F*>(job.lambda);
 				
 				assert(job.begin < data.size() && "BOB [thread_pool][m_ProcessChunk()]: begin is larger than vector size");
 				assert(job.end < data.size() && "BOB [thread_pool][m_ProcessChunk()]: end is larger than vector size");
 
 				for (size_t i = static_cast<size_t>(job.begin), n = static_cast<size_t>(job.end); i < n; ++i)
-					callback(data[i], i);
+					callback(data[i]);
 			}
 
 			template <typename T, typename F>
@@ -118,7 +118,7 @@ namespace bob
 				assert(end == data.size() && "BOB [thread_pool][m_ProcessSingle()]: end does not reach the actual end");
 
 				for (size_t i = begin; i < end; ++i)
-					callback(data[i], i);
+					callback(data[i]);
 			}
 
 			void m_WorkerFunction(const uint32_t index) noexcept

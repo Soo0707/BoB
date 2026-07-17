@@ -1,6 +1,6 @@
-<h1 align="center">BOB</h1>
+<h1 align="center">BoB</h1>
 
-**BoB** (Bundle of Boilerplate) is a simple, barebones, header only Sparse Set-based Entity Component System written in **C++20**.
+**BoB** (Bundle of Boilerplate) is a simple, barebones, header only sparse set-based Entity Component System written in **C++20**.
 
 # Why BoB?
 
@@ -8,9 +8,9 @@ The goal of **BoB** is to be as simple, and as transparant as possible.
 
 ## Define "transparant"?
 
-Every component of **BoB** is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Everything under the hood is a `std::vector`.
+Every component of **BoB** is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Everything handed to you is a `std::vector`.
 
-## Features
+## Components
 
 BoB consists of:
 
@@ -69,7 +69,6 @@ entity_handle get_new_handle()
 // add component T to entity. args = arguments to construct T
 void add<T>(const entity_handle handle, Arg&&... args)
 
-// T = component type
 // removes all components specified in T of an entity and recycle its handle
 void remove<T...>(const entity_handle handle)
 
@@ -86,11 +85,11 @@ sparse_set<T>& get_sparse_set<T>()
 
 ```c++
 
-// constructor. n = number of worker threads excluding main thread
+// constructor. n = number of worker threads
 thread_pool(const size_t n)
 
 // chunk process a vector when its size is larger than grain
-// callback function must have signature F(T& in, size_t i)
+// callback function must have signature F(T& in)
 // this function is blocking
 void parallelise(std::vector<T>& data, F&& callback, const size_t grain = 20000)
 ```
