@@ -4,11 +4,11 @@
 
 # Why BoB?
 
-The goal of **BoB** is to be as simple, and as transparant as possible.
+The goal of **BoB** is to be as simple, and as transparant as possible. You are encouraged to modify **BoB**'s components to suit your needs.
 
 ## Define "transparant"?
 
-Every component of **BoB** is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Everything handed to you is a `std::vector`.
+Every component of **BoB** is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Unless necessary, everything handed to you is a `std::vector`.
 
 ## Components
 
@@ -19,6 +19,47 @@ BoB consists of:
 - Sparse Set
 - Registry
 - Thread Pool
+
+# How do I get started?
+
+This assumes a certain project folder structure.
+
+1. Place the contents of `include/bob` into the root folder of your project
+1. Open up to `include/bob/bob.hpp` in your editor
+1. Follow the instructions in the file, the end result should look similar to below
+
+    ```c++
+    #ifndef BOB
+    #define BOB
+
+    #include "bob/entity_handle_generator.hpp"
+    #include "bob/entity_handle.hpp"
+    #include "bob/registry.hpp"
+    #include "bob/sparse_set.hpp"
+    #include "bob/thread_pool.hpp"
+
+
+    // include or define your component headers below.
+
+    #include "vectors.hpp"
+    #include "entity_tags.hpp"
+    #include "sample_components.hpp"
+    
+
+    /*
+     * create a type alias for your registry(s) below.
+     * 
+     * example:
+     * using sample_registry = bob::registry<ComponentTypeA, ComponentTypeB, ComponentTypeC>;
+     */
+
+    using my_registry_type = bob::registry<vector2, entity_tag_a, entity_tag_b, sample_component_a>;
+
+    #endif
+    ```
+
+1. You can now include `bob/bob.hpp` in any of your project files
+1. Due to [most vexing parse](https://en.wikipedia.org/wiki/Most_vexing_parse), brace initialisation should be used to construct a registry
 
 # Cheatsheet
 
@@ -89,7 +130,8 @@ sparse_set<T>& get_sparse_set<T>()
 thread_pool(const size_t n)
 
 // chunk process a vector when its size is larger than grain
-// callback function must have signature F(T& in)
+// callback function must have signature F(T& in) and should
+// contain the transformation to be applied for each element
 // this function is blocking
 void parallelise(std::vector<T>& data, F&& callback, const size_t grain = 20000)
 ```
