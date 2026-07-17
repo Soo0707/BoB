@@ -25,7 +25,7 @@ BoB consists of:
 This assumes a certain project folder structure.
 
 1. Place the contents of `include/bob` into the root folder of your project
-1. Open up to `include/bob/bob.hpp` in your editor
+1. Open up `include/bob/bob.hpp` in your editor
 1. Follow the instructions in the file, the end result should look similar to below
 
     ```c++
@@ -44,7 +44,7 @@ This assumes a certain project folder structure.
     #include "vectors.hpp"
     #include "entity_tags.hpp"
     #include "sample_components.hpp"
-    
+
 
     /*
      * create a type alias for your registry(s) below.
@@ -62,6 +62,7 @@ This assumes a certain project folder structure.
 1. Due to [most vexing parse](https://en.wikipedia.org/wiki/Most_vexing_parse), brace initialisation should be used to construct a registry
 
 # Cheatsheet
+The methods below should be all a normal user would need.
 
 **Namespace:** `bob::entity_handle`
 
