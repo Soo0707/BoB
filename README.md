@@ -1,14 +1,14 @@
 <h1 align="center">BoB</h1>
 
-**BoB** (Bundle of Boilerplate) is a simple, barebones, header only sparse set-based Entity Component System written in **C++20**.
+BoB (Bundle of Boilerplate) is a simple, barebones, header only sparse set-based Entity Component System written in C++20.
 
 # Why BoB?
 
-The goal of **BoB** is to be as simple, and as transparant as possible. You are encouraged to modify **BoB**'s components to suit your needs.
+The goal of BoB is to be as simple, and as transparant as possible. You are encouraged to modify BoB's components to suit your needs.
 
 ## Define "transparant"?
 
-Every component of **BoB** is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Unless necessary, everything handed to you is a `std::vector`.
+Every component of BoB is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Unless necessary, everything handed to you is a `std::vector`.
 
 ## Components
 
