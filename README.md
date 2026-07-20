@@ -25,41 +25,54 @@ BoB consists of:
 This assumes a certain project folder structure.
 
 1. Place the contents of `include/bob` into the root folder of your project
-1. Open up `include/bob/bob.hpp` in your editor
-1. Follow the instructions in the file, the end result should look similar to below
+1. Include `bob/bob.hpp` in any of your related project files
 
-    ```c++
-    #ifndef BOB
-    #define BOB
+# Example
 
-    #include "bob/entity_handle_generator.hpp"
-    #include "bob/entity_handle.hpp"
-    #include "bob/registry.hpp"
-    #include "bob/sparse_set.hpp"
-    #include "bob/thread_pool.hpp"
+```c++
+#include <string>
 
+#include "bob/bob.hpp"
+#include "example_components.hpp"
 
-    // include or define your component headers below.
+int main()
+{
+    bob::registry registry;
 
-    #include "vectors.hpp"
-    #include "entity_tags.hpp"
-    #include "sample_components.hpp"
+    // components must be registered first
+    registry.register_component<Vector2>();
+    registry.register_component<PlayerTag>();
 
+    // to create an entity, request for an entity_handle;
+    const bob::entity_handle entity_zero = registry.get_new_handle();
 
-    /*
-     * create a type alias for your registry(s) below.
-     * 
-     * example:
-     * using sample_registry = bob::registry<ComponentTypeA, ComponentTypeB, ComponentTypeC>;
-     */
+    // add a Vector2 { 6.0f, 7.0f } component to the entity
+    registry.add<Vector2>(entity_zero, 6.0f, 7.0f);
 
-    using my_registry_type = bob::registry<vector2, entity_tag_a, entity_tag_b, sample_component_a>;
+    // add a PlayerTag to the entity
+    registry.add<PlayerTag>(entity_zero);
 
-    #endif
-    ```
+    // get sparse set containing Vector2
+    bob::sparse_set<Vector2>& vector2_set = registry.get_sparse_set<Vector2>();
 
-1. You can now include `bob/bob.hpp` in any of your project files
-1. Due to [most vexing parse](https://en.wikipedia.org/wiki/Most_vexing_parse), brace initialisation should be used to construct a registry
+    // get sparse set containing PlayerTag
+    bob::sparse_set<PlayerTag>& player_set = registry.get_sparse_set<PlayerTag>();
+
+    // get entities that contain BOTH Vector2 and PlayerTag
+    const std::vector<bob::entity_handle>& iter = registry.get_iterator<Vector2, PlayerTag>();
+
+    // accessing components through entity handles
+    for (const bob::entity_handle h : iter)
+    {
+        Vector2 vec = vector2_set[h];
+        PlayerTag tag = player_set[h];
+    }
+
+    // remove an entity and their components
+    registry.remove<Vector2, PlayerTag>(entity_zero);
+}
+
+```
 
 # Cheatsheet
 The methods below should be all a normal user would need.
@@ -104,6 +117,8 @@ const std::vector<entity_handle>& get_handles() const
 **Namespace:** `bob::registry`
 
 ```c++
+// register a component
+void register_component<T>();
 
 // returns next successive entity handle
 entity_handle get_new_handle()

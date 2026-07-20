@@ -87,7 +87,7 @@ namespace bob
 			{
 				const size_t type_index = this->m_GetTypeIndex<T>();
 
-				assert(this->m_Sets[type_index] != nullptr && "BOB [registry][get_sparse_set]: called on unregistered component");
+				assert(type_index < this->m_Sets.size() && "BOB [registry][get_sparse_set]: called on unregistered component");
 				return *static_cast<sparse_set<T>*>(this->m_Sets[type_index]);
 			}
 
@@ -95,7 +95,7 @@ namespace bob
 			sparse_set<T>& get_sparse_set() noexcept
 			{
 				// if i looked up the syntax i might as well use it.
-				return const_cast<sparse_set<T>&>(std::as_const(*this).template get_sparse_set<T>());
+				return const_cast<sparse_set<T>&>(std::as_const(*this).get_sparse_set<T>());
 			}
 
 		private:
