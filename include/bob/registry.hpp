@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <tuple>
 #include <vector>
 
 #include "entity_handle_generator.hpp"
@@ -12,18 +11,16 @@
 
 namespace bob
 {
-	template <typename... Component>
 	class registry
 	{
 		public:
-			using components = std::tuple<Component...>;
-
 			registry()
+			{}
+
+			~registry()
 			{
-				static_assert(
-						sizeof...(Component) > 0 &&
-						"BOB [registry][registry()]: no component types were passed in for registration"
-						);
+				for (size_t i = 0, n = this->m_Sets.size(); i < n; ++i)
+					delete this->m_Sets[i];
 			}
 
 			entity_handle get_new_handle() noexcept
@@ -31,10 +28,23 @@ namespace bob
 				return this->m_HandleGenerator.get_new_handle();
 			}
 
+			template <typename T>
+			void register_component() noexcept
+			{
+				const size_t type_index = this->m_GetTypeIndex<T>();
+
+				this->m_Sets.resize(type_index + 1);
+
+				assert(this->m_Sets[type_index] == nullptr && "BOB [registry][register_component()]: component registered twice");
+
+				sparse_set<T>* new_sparse_set = new sparse_set<T>();
+				this->m_Sets[type_index] = new_sparse_set;
+			}
+
 			template <typename T, typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
-				sparse_set<T>& concrete_set = std::get<sparse_set<T>>(this->m_Sets);
+				sparse_set<T>& concrete_set = this->get_sparse_set<T>();
 				concrete_set.add(handle, std::forward<Arg>(args)...);
 			}
 
@@ -75,7 +85,10 @@ namespace bob
 			template <typename T>
 			const sparse_set<T>& get_sparse_set() const noexcept
 			{
-				return std::get<sparse_set<T>>(this->m_Sets);
+				const size_t type_index = this->m_GetTypeIndex<T>();
+
+				assert(this->m_Sets[type_index] != nullptr && "BOB [registry][get_sparse_set]: called on unregistered component");
+				return *static_cast<sparse_set<T>*>(this->m_Sets[type_index]);
 			}
 
 			template <typename T>
@@ -87,9 +100,16 @@ namespace bob
 
 		private:
 			template <typename T>
+			size_t m_GetTypeIndex() const noexcept
+			{
+				static const size_t type_index = registry::m_TypeCounter++;
+				return type_index;
+			}
+
+			template <typename T>
 			const std::vector<entity_handle>& m_GetHandleLayer() const noexcept
 			{
-				const sparse_set<T>& concrete_set = std::get<sparse_set<T>>(this->m_Sets);
+				const sparse_set<T>& concrete_set = this->get_sparse_set<T>();
 				return concrete_set.get_handles();
 			}
 
@@ -103,12 +123,13 @@ namespace bob
 			template <typename T>
 			void m_RemoveComponent(const entity_handle handle) noexcept
 			{
-				sparse_set<T>& concrete_set = std::get<sparse_set<T>>(this->m_Sets);
+				sparse_set<T>& concrete_set = this->get_sparse_set<T>();
 				concrete_set.remove(handle);
 			}
 
-			std::tuple<sparse_set<Component>...> m_Sets;
+			std::vector<abstract_sparse_set*> m_Sets;
 			entity_handle_generator m_HandleGenerator;
+			static inline size_t m_TypeCounter = 0;
 	};
 };
 #endif

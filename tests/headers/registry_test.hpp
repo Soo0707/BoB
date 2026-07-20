@@ -16,13 +16,16 @@ struct Vector2
 struct Tag
 {};
 
-using sample_registry = bob::registry<Tag, Vector2, std::string>;
 
 class RegistryTest
 {
 	public:
 		RegistryTest()
 		{
+			this->m_Registry.register_component<std::string>();
+			this->m_Registry.register_component<Vector2>();
+			this->m_Registry.register_component<Tag>();
+
 			this->m_AddEntityZero();
 			this->m_AddEntityOne();
 			this->m_AddEntityTwo();
@@ -216,7 +219,7 @@ class RegistryTest
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
 
-		sample_registry m_Registry;
+		bob::registry m_Registry;
 };
 
 #endif
