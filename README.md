@@ -1,16 +1,29 @@
 <h1 align="center">BoB</h1>
 
-BoB (Bundle of Boilerplate) is a simple, barebones, header only sparse set-based Entity Component System written in C++20.
+BoB (Bundle of Boilerplate) is a simple, barebones, header-only sparse set-based [Entity Component System](https://github.com/SanderMertens/ecs-faq) written in C++20.
 
 # Why BoB?
 
-The goal of BoB is to be as simple, and as transparant as possible. You are encouraged to modify BoB's components to suit your needs.
+The goal of BoB is to be as simple, and as transparant as possible. You are encouraged to modify BoB's components to suit your needs if necessary.
+
+# Why use an ECS?
+
+There are many advantages of using an ECS highlighted by the author of Flecs.
+
+I believe an ECS promotes composition of simple plain old data components and the placement of components in a contiguous manner in memory.
+
+This single feature means:
+
+- The prefetcher can fetch with high confidence of a cache hit
+- More components can fit in cache
+- The compiler can more aggressively optimise for SIMD
+- Easy batch processing of component arrays without dependencies
 
 ## Define "transparant"?
 
 Every component of BoB is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Unless necessary, everything handed to you is a `std::vector`.
 
-## Components
+## What does BoB offer me?
 
 BoB consists of:
 
@@ -78,7 +91,6 @@ int main()
 ```
 
 # Cheatsheet
-The methods below should be all a normal user would need.
 
 **Namespace:** `bob::entity_handle`
 
