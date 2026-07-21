@@ -6,7 +6,11 @@ BoB (Bundle of Boilerplate) is a simple, barebones, header-only sparse set-based
 
 The goal of BoB is to be as simple, and as transparant as possible. You are encouraged to modify BoB's components to suit your needs if necessary.
 
-# Why use an ECS?
+## Define "transparant"?
+
+Every component of BoB is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Unless necessary, everything handed to you is a `std::vector`.
+
+## Why use an ECS?
 
 There are many advantages of using an ECS highlighted by the author of Flecs.
 
@@ -19,11 +23,7 @@ This single feature means:
 - The compiler can more aggressively optimise for SIMD
 - Easy batch processing of component arrays without dependencies
 
-## Define "transparant"?
-
-Every component of BoB is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Unless necessary, everything handed to you is a `std::vector`.
-
-## What does BoB offer me?
+## What does BoB offer?
 
 BoB consists of:
 
