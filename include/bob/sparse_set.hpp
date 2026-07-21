@@ -176,10 +176,8 @@ namespace bob
 				this->m_ComponentBuffer.pop_back();
 			}
 
-			// TODO: improve this reserve function. this doesn't seem to meet real world needs.
 			void reserve(const size_t new_size) noexcept
 			{
-				this->m_SparseBuffer.reserve(new_size);
 				this->m_HandleBuffer.reserve(new_size);
 				this->m_ComponentBuffer.reserve(new_size);
 			}

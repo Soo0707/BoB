@@ -60,10 +60,21 @@ namespace bob
 			{
 				static_assert(
 						sizeof...(T) > 0 &&
-						"BOB [registry][remove()]: number of components to be removed must be more than 0"
+						"BOB [registry][remove()]: number of components must be more than 0"
 						);
 
 				(m_RemoveComponent<T>(handle), ...);
+			}
+
+			template <typename... T>
+			void reserve(const size_t new_capacity) noexcept
+			{
+				static_assert(
+						sizeof...(T) > 0 &&
+						"BOB [registry][reserve()]: number of components must be more than 0"
+						);
+
+				(this->get_sparse_set<T>().reserve(new_capacity), ...);
 			}
 			
 			template <typename First, typename... After>

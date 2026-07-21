@@ -34,6 +34,8 @@ class RegistryTest
 			this->m_Registry.register_component<Vector2>();
 			this->m_Registry.register_component<Tag>();
 
+			this->m_Reserve();
+
 			this->m_AddEntityZero();
 			this->m_AddEntityOne();
 			this->m_AddEntityTwo();
@@ -88,6 +90,23 @@ class RegistryTest
 			this->m_Registry.add<Vector2>(third_handle, 12.0f, 14.0f);
 			this->m_Registry.add<std::string>(third_handle, "2");
 			
+			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+		}
+
+		void m_Reserve()
+		{
+			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
+
+			this->m_Registry.reserve<std::string, Vector2, Tag>(1024);
+
+			const size_t string_set_capacity = this->m_Registry.get_sparse_set<std::string>().get_components().capacity();
+			const size_t vector_set_capacity = this->m_Registry.get_sparse_set<Vector2>().get_components().capacity();
+			const size_t tag_set_capacity = this->m_Registry.get_sparse_set<Tag>().get_components().capacity();
+
+			assert(string_set_capacity >= 1024);
+			assert(vector_set_capacity >= 1024);
+			assert(tag_set_capacity >= 1024);
+
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
 
