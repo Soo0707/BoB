@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2026 Soo0707
+ *
+ * This software is provided 'as-is', without any express or implied warranty.
+ * Use of this software is governed by the zlib license. 
+ * See the LICENSE file in the project root for full license text.
+ */
+
 #ifndef BOB_REGISTRY_TEST
 #define BOB_REGISTRY_TEST
 
