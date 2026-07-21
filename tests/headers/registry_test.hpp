@@ -186,6 +186,7 @@ class RegistryTest
 			const bob::entity_handle third_handle = bob::entity_handle(2);
 
 			this->m_Registry.remove<Tag, Vector2, std::string>(third_handle);
+			this->m_Registry.release_handle(third_handle);
 
 			const auto& string_vector_tag_handles = this->m_Registry.get_iterator<Tag, Vector2, std::string>();
 			assert(string_vector_tag_handles.size() == 0);
@@ -198,7 +199,9 @@ class RegistryTest
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
 			const bob::entity_handle second_handle = bob::entity_handle(1);
+
 			this->m_Registry.remove<Vector2, std::string>(second_handle);
+			this->m_Registry.release_handle(second_handle);
 
 			const auto& string_vector_handles = this->m_Registry.get_iterator<Vector2, std::string>();
 			assert(string_vector_handles.size() == 0);
@@ -211,7 +214,9 @@ class RegistryTest
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
 			const bob::entity_handle first_handle = bob::entity_handle(0);
+
 			this->m_Registry.remove<std::string>(first_handle);
+			this->m_Registry.release_handle(first_handle);
 
 			const auto& string_handles = this->m_Registry.get_iterator<std::string>();
 			assert(string_handles.size() == 0);

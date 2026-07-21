@@ -64,12 +64,15 @@ int main()
     // accessing components through entity handles
     for (const bob::entity_handle h : iter)
     {
-        Vector2 vec = vector2_set[h];
-        PlayerTag tag = player_set[h];
+        Vector2& vec = vector2_set[h];
+        PlayerTag& tag = player_set[h];
     }
 
-    // remove an entity and their components
+    // remove component(s) from an entity
     registry.remove<Vector2, PlayerTag>(entity_zero);
+
+    // recycle the entity handle
+    registry.release_handle(entity_zero);
 }
 
 ```
@@ -123,10 +126,13 @@ void register_component<T>();
 // returns next successive entity handle
 entity_handle get_new_handle()
 
+// recycle entity handle
+void release_handle(const entity_handle handle)
+
 // add component T to entity. args = arguments to construct T
 void add<T>(const entity_handle handle, Arg&&... args)
 
-// removes all components specified in T of an entity and recycle its handle
+// removes all components specified in T of an entity
 void remove<T...>(const entity_handle handle)
 
 // First and After are a list of components

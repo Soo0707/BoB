@@ -28,6 +28,11 @@ namespace bob
 				return this->m_HandleGenerator.get_new_handle();
 			}
 
+			void release_handle(const entity_handle handle) noexcept
+			{
+				this->m_HandleGenerator.invalidate_handle(handle);
+			}
+
 			template <typename T>
 			void register_component() noexcept
 			{
@@ -57,7 +62,6 @@ namespace bob
 						);
 
 				(m_RemoveComponent<T>(handle), ...);
-				this->m_HandleGenerator.invalidate_handle(handle);
 			}
 			
 			template <typename First, typename... After>
