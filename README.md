@@ -147,7 +147,8 @@ void register_component<T>();
 // returns next successive entity handle
 entity_handle create_handle()
 
-// recycle entity handle
+// recycle entity handle, does not check for duplicates
+// susceptible to double free-like errors
 void release_handle(const entity_handle handle)
 
 // add component T to entity. args = arguments to construct T
