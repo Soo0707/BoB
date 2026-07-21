@@ -1,8 +1,8 @@
 <h1 align="center">BoB</h1>
 
-BoB (Bundle of Boilerplate) is a simple, barebones, header-only sparse set-based [Entity Component System](https://github.com/SanderMertens/ecs-faq) written in C++20.
+BoB (Bundle of Boilerplate) is a simple, barebones, header-only sparse set-based Entity Component System written in C++20.
 
-# Why BoB?
+## Why BoB?
 
 The goal of BoB is to be as simple, and as transparant as possible. You are encouraged to modify BoB's components to suit your needs if necessary.
 
@@ -12,16 +12,12 @@ Every component of BoB is built upon functionality that the C++ standard library
 
 ## Why use an ECS?
 
-There are many advantages of using an ECS highlighted by the author of Flecs.
+There are many [advantages of using an ECS](https://github.com/SanderMertens/ecs-faq) already highlighted by the author of Flecs.
 
-I believe an ECS promotes composition of simple plain old data components and the placement of components in a contiguous manner in memory.
+I believe an ECS promotes composition of simple plain old data components and the placement of said components in a contiguous manner in memory which entails
 
-This single feature means:
-
-- The prefetcher can fetch with high confidence of a cache hit
-- More components can fit in cache
-- The compiler can more aggressively optimise for SIMD
-- Easy batch processing of component arrays without dependencies
+- **Better Cache Locality:** Components are small and their sequential order in memory all but guarantees cache hits
+- **Aggressive Compiler Optimisations:** Having less fluff around an object means the compiler can more aggressively make use of SIMD and other optimisations
 
 ## What does BoB offer?
 
@@ -33,14 +29,14 @@ BoB consists of:
 - Registry
 - Thread Pool
 
-# How do I get started?
+## How do I get started?
 
 This assumes a certain project folder structure.
 
 1. Place the contents of `include/bob` into the root folder of your project
 1. Include `bob/bob.hpp` in any of your related project files
 
-# Example
+## Example
 
 ```c++
 #include <string>
@@ -57,7 +53,7 @@ int main()
     registry.register_component<PlayerTag>();
 
     // to create an entity, request for an entity_handle;
-    const bob::entity_handle entity_zero = registry.get_new_handle();
+    const bob::entity_handle entity_zero = registry.create_handle();
 
     // add a Vector2 { 6.0f, 7.0f } component to the entity
     registry.add<Vector2>(entity_zero, 6.0f, 7.0f);
@@ -66,17 +62,30 @@ int main()
     registry.add<PlayerTag>(entity_zero);
 
     // get sparse set containing Vector2
-    bob::sparse_set<Vector2>& vector2_set = registry.get_sparse_set<Vector2>();
-
+    bob::sparse_set<Vector2>& vector2_set = registry.container<Vector2>();
+    
     // get sparse set containing PlayerTag
-    bob::sparse_set<PlayerTag>& player_set = registry.get_sparse_set<PlayerTag>();
+    bob::sparse_set<PlayerTag>& player_set = registry.container<PlayerTag>();
+
+    // get dense layer of Vector2 sparse set
+    std::vector<Vector2>& vectors = vector2_set.components();
+    
+    // cache friendly iteration of components
+    for (auto& v : vectors)
+    {
+        v.x += 6.0f;
+        v.y += 7.0f;
+    }
 
     // get entities that contain BOTH Vector2 and PlayerTag
-    const std::vector<bob::entity_handle>& iter = registry.get_iterator<Vector2, PlayerTag>();
+    const std::vector<bob::entity_handle>& iter = registry.iterator<Vector2, PlayerTag>();
 
-    // accessing components through entity handles
+    // accessing components through entity handles, use sparingly
     for (const bob::entity_handle h : iter)
     {
+        // O(1) per lookup using operator[] but is not cache friendly
+        // involves jumping from sparse to dense layer
+
         Vector2& vec = vector2_set[h];
         PlayerTag& tag = player_set[h];
     }
@@ -90,7 +99,7 @@ int main()
 
 ```
 
-# Cheatsheet
+## Cheatsheet
 
 **Namespace:** `bob::entity_handle`
 
@@ -123,10 +132,10 @@ T* try_get(const entity_handle)
 T& operator[](const entity_handle handle)
 
 // returns reference to component layer
-std::vector<T>& get_components()
+std::vector<T>& components()
 
 // returns reference to handle layer
-const std::vector<entity_handle>& get_handles() const
+const std::vector<entity_handle>& handles() const
 ```
 
 **Namespace:** `bob::registry`
@@ -136,7 +145,7 @@ const std::vector<entity_handle>& get_handles() const
 void register_component<T>();
 
 // returns next successive entity handle
-entity_handle get_new_handle()
+entity_handle create_handle()
 
 // recycle entity handle
 void release_handle(const entity_handle handle)
@@ -150,10 +159,10 @@ void remove<T...>(const entity_handle handle)
 // First and After are a list of components
 // returns the entity handle layer of the smallest sparse set
 // which contains all components specified in First and After
-const std::vector<entity_handle>& get_iterator<First, After...>() const
+const std::vector<entity_handle>& iterator<First, After...>() const
 
 // returns a sparse set of component type T
-sparse_set<T>& get_sparse_set<T>()
+sparse_set<T>& container<T>()
 ```
 
 **Namespace:** `bob::thread_pool`
