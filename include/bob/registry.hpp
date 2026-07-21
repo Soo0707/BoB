@@ -11,6 +11,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 #include "entity_handle_generator.hpp"
@@ -24,12 +25,6 @@ namespace bob
 		public:
 			registry()
 			{}
-
-			~registry()
-			{
-				for (size_t i = 0, n = this->m_Sets.size(); i < n; ++i)
-					delete this->m_Sets[i];
-			}
 
 			entity_handle get_new_handle() noexcept
 			{
@@ -50,8 +45,7 @@ namespace bob
 
 				assert(this->m_Sets[type_index] == nullptr && "BOB [registry][register_component()]: component registered twice");
 
-				sparse_set<T>* new_sparse_set = new sparse_set<T>();
-				this->m_Sets[type_index] = new_sparse_set;
+				this->m_Sets[type_index] = std::make_unique<sparse_set<T>>();
 			}
 
 			template <typename T, typename... Arg>
@@ -100,7 +94,7 @@ namespace bob
 				const size_t type_index = this->m_GetTypeIndex<T>();
 
 				assert(type_index < this->m_Sets.size() && "BOB [registry][get_sparse_set]: called on unregistered component");
-				return *static_cast<sparse_set<T>*>(this->m_Sets[type_index]);
+				return *static_cast<sparse_set<T>*>(this->m_Sets[type_index].get());
 			}
 
 			template <typename T>
@@ -139,7 +133,7 @@ namespace bob
 				concrete_set.remove(handle);
 			}
 
-			std::vector<abstract_sparse_set*> m_Sets;
+			std::vector<std::unique_ptr<abstract_sparse_set>> m_Sets;
 			entity_handle_generator m_HandleGenerator;
 			static inline size_t m_TypeCounter = 0;
 	};
