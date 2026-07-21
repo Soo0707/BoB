@@ -26,9 +26,9 @@ namespace bob
 			registry()
 			{}
 
-			entity_handle get_new_handle() noexcept
+			entity_handle create_handle() noexcept
 			{
-				return this->m_HandleGenerator.get_new_handle();
+				return this->m_HandleGenerator.create_handle();
 			}
 
 			void release_handle(const entity_handle handle) noexcept
@@ -39,7 +39,7 @@ namespace bob
 			template <typename T>
 			void register_component() noexcept
 			{
-				const size_t type_index = this->m_GetTypeIndex<T>();
+				const size_t type_index = this->m_TypeIndex<T>();
 
 				this->m_Sets.resize(type_index + 1);
 
@@ -51,7 +51,7 @@ namespace bob
 			template <typename T, typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
-				sparse_set<T>& concrete_set = this->get_sparse_set<T>();
+				sparse_set<T>& concrete_set = this->container<T>();
 				concrete_set.add(handle, std::forward<Arg>(args)...);
 			}
 
@@ -74,11 +74,11 @@ namespace bob
 						"BOB [registry][reserve()]: number of components must be more than 0"
 						);
 
-				(this->get_sparse_set<T>().reserve(new_capacity), ...);
+				(this->container<T>().reserve(new_capacity), ...);
 			}
 			
 			template <typename First, typename... After>
-			const std::vector<entity_handle>& get_iterator() const noexcept
+			const std::vector<entity_handle>& iterator() const noexcept
 			{
 				/*
 				TODO: it might be a good idea to sort the arbitrary ordered components at compile time
@@ -100,24 +100,24 @@ namespace bob
 			}
 			
 			template <typename T>
-			const sparse_set<T>& get_sparse_set() const noexcept
+			const sparse_set<T>& container() const noexcept
 			{
-				const size_t type_index = this->m_GetTypeIndex<T>();
+				const size_t type_index = this->m_TypeIndex<T>();
 
 				assert(type_index < this->m_Sets.size() && "BOB [registry][get_sparse_set]: called on unregistered component");
 				return *static_cast<sparse_set<T>*>(this->m_Sets[type_index].get());
 			}
 
 			template <typename T>
-			sparse_set<T>& get_sparse_set() noexcept
+			sparse_set<T>& container() noexcept
 			{
 				// if i looked up the syntax i might as well use it.
-				return const_cast<sparse_set<T>&>(std::as_const(*this).get_sparse_set<T>());
+				return const_cast<sparse_set<T>&>(std::as_const(*this).container<T>());
 			}
 
 		private:
 			template <typename T>
-			size_t m_GetTypeIndex() const noexcept
+			size_t m_TypeIndex() const noexcept
 			{
 				static const size_t type_index = registry::m_TypeCounter++;
 				return type_index;
@@ -126,8 +126,8 @@ namespace bob
 			template <typename T>
 			const std::vector<entity_handle>& m_GetHandleLayer() const noexcept
 			{
-				const sparse_set<T>& concrete_set = this->get_sparse_set<T>();
-				return concrete_set.get_handles();
+				const sparse_set<T>& concrete_set = this->container<T>();
+				return concrete_set.handles();
 			}
 
 			template <typename T>
@@ -140,7 +140,7 @@ namespace bob
 			template <typename T>
 			void m_RemoveComponent(const entity_handle handle) noexcept
 			{
-				sparse_set<T>& concrete_set = this->get_sparse_set<T>();
+				sparse_set<T>& concrete_set = this->container<T>();
 				concrete_set.remove(handle);
 			}
 

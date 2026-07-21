@@ -21,7 +21,7 @@ class EntityHandleGeneratorTest
 		{
 			this->m_FirstHandle();
 			this->m_SecondHandle();
-			this->m_InvalidateThenPeak();
+			this->m_InvalidateThenRecycle();
 		}
 
 	private:
@@ -29,7 +29,7 @@ class EntityHandleGeneratorTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle first_handle = this->m_HandleGenerator.get_new_handle();
+			const bob::entity_handle first_handle = this->m_HandleGenerator.create_handle();
 			assert(first_handle == bob::entity_handle(0));
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
@@ -39,13 +39,13 @@ class EntityHandleGeneratorTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 			
-			const bob::entity_handle second_handle = this->m_HandleGenerator.get_new_handle();
+			const bob::entity_handle second_handle = this->m_HandleGenerator.create_handle();
 			assert(second_handle == bob::entity_handle(1));
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
 
-		void m_InvalidateThenPeak()
+		void m_InvalidateThenRecycle()
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
@@ -53,10 +53,7 @@ class EntityHandleGeneratorTest
 
 			this->m_HandleGenerator.invalidate_handle(second_handle);
 
-			const bob::entity_handle next_handle_preview = this->m_HandleGenerator.peak_next_handle();
-			assert(next_handle_preview == bob::entity_handle(0x100001));
-
-			const bob::entity_handle recycled_handle = this->m_HandleGenerator.get_new_handle();
+			const bob::entity_handle recycled_handle = this->m_HandleGenerator.create_handle();
 			assert(recycled_handle == bob::entity_handle(0x100001));
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";

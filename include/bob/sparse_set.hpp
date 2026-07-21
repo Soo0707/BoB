@@ -121,17 +121,17 @@ namespace bob
 				return const_cast<T&>(std::as_const(*this)[handle]);
 			}
 
-			const std::vector<T>& get_components() const noexcept
+			const std::vector<T>& components() const noexcept
 			{
 				return this->m_ComponentBuffer;
 			}
 
-			std::vector<T>& get_components() noexcept
+			std::vector<T>& components() noexcept
 			{
 				return this->m_ComponentBuffer;
 			}
 			
-			const std::vector<entity_handle>& get_handles() const noexcept
+			const std::vector<entity_handle>& handles() const noexcept
 			{
 				return this->m_HandleBuffer;
 			}

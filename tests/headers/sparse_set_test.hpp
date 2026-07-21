@@ -29,6 +29,8 @@ class SparseSetTest
 		}
 
 	private:
+		// TODO: test reserve
+		
 		void m_AppendSparse()
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
@@ -39,7 +41,7 @@ class SparseSetTest
 				this->m_Sparse.add(handle);
 			}
 
-			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.get_handles();
+			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.handles();
 			assert(tag_handles.size() == 4);
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
@@ -49,7 +51,7 @@ class SparseSetTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.get_handles();
+			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.handles();
 
 			for (size_t i = 0, n = tag_handles.size(); i < n; ++i)
 			{
@@ -66,7 +68,7 @@ class SparseSetTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const std::vector<TagB> tag_components = this->m_Sparse.get_components();
+			const std::vector<TagB> tag_components = this->m_Sparse.components();
 			assert(tag_components.size() == 4);
 
 			for (size_t i = 0; i < 4; ++i)
