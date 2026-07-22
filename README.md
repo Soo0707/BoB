@@ -136,6 +136,9 @@ std::vector<T>& components()
 
 // returns reference to handle layer
 const std::vector<entity_handle>& handles() const
+
+// reserve memory for the handle and component layer
+void reserve(const size_t new_size)
 ```
 
 **Namespace:** `bob::registry`
@@ -156,6 +159,9 @@ void add<T>(const entity_handle handle, Arg&&... args)
 
 // removes all components specified in T of an entity
 void remove<T...>(const entity_handle handle)
+
+// calls reserve for all component types specified in pack T
+void reserve<T...>(const size_t new_capacity)
 
 // First and After are a list of components
 // returns the entity handle layer of the smallest sparse set
