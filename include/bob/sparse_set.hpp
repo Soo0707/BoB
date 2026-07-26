@@ -9,11 +9,11 @@
 #ifndef BOB_SPARSE_SET
 #define BOB_SPARSE_SET
 
-#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <utility>
+#include <vector>
 
 #include "entity_handle.hpp"
 
