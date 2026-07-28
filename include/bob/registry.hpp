@@ -37,15 +37,30 @@ namespace bob
 			}
 
 			template <typename T>
-			void register_component() noexcept
+			void register_component(constexpr bool grouped = false) noexcept
 			{
 				const size_t type_index = this->m_TypeIndex<T>();
 
 				this->m_Sets.resize(type_index + 1);
+				this->m_Grouped.resize(type_index + 1);
 
 				assert(this->m_Sets[type_index] == nullptr && "BOB [registry][register_component()]: component registered twice");
 
+				if constexpr (grouped)
+					this->m_Grouped[type_index] = true;
+
 				this->m_Sets[type_index] = std::make_unique<sparse_set<T>>();
+			}
+
+			template <typename... T>
+			void register_group() noexcept
+			{
+				const size_t group_index = this->m_GroupIndex<T...>();
+
+				this->m_GroupSizes.resize(group_index + 1);
+				assert(this->m_GroupSizes[group_index] == 0 && "BOB [registry][register_group()]: group registered twice");
+
+				(this->register_component<T>(true), ...);
 			}
 
 			template <typename T, typename... Arg>
@@ -116,6 +131,13 @@ namespace bob
 			}
 
 		private:
+			template <typename... T>
+			size_t m_GroupIndex() const noexcept
+			{
+				static const size_t group_index = registry::m_GroupCounter++;
+				return group_index;
+			}
+
 			template <typename T>
 			size_t m_TypeIndex() const noexcept
 			{
@@ -145,8 +167,13 @@ namespace bob
 			}
 
 			std::vector<std::unique_ptr<abstract_sparse_set>> m_Sets;
+
+			std::vector<bool> m_Grouped;
+
 			entity_handle_generator m_HandleGenerator;
+
 			static inline size_t m_TypeCounter = 0;
+			static inline size_t m_GroupCounter = 0;
 	};
 };
 #endif
