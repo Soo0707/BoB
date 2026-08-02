@@ -13,6 +13,7 @@
 #include "bob/entity_handle.hpp"
 #include "bob/registry.hpp"
 #include "bob/sparse_set.hpp"
+#include "bob/group.hpp"
 #include "bob/thread_pool.hpp"
 
 #endif

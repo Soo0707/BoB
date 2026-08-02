@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "bob/entity_handle.hpp"
+#include "bob/utilities.hpp"
 
 namespace bob
 {
@@ -146,6 +147,9 @@ namespace bob
 				this->m_SparseBuffer[handle.index()] = static_cast<uint32_t>(this->m_HandleBuffer.size());
 				this->m_HandleBuffer.emplace_back(handle);
 				this->m_ComponentBuffer.emplace_back(std::forward<Arg>(args)...);
+
+				if (this->m_AddProxy.context != nullptr)
+					this->m_AddProxy(handle);
 			}
 
 			void remove(const entity_handle handle) noexcept
@@ -174,6 +178,9 @@ namespace bob
 
 				this->m_HandleBuffer.pop_back();
 				this->m_ComponentBuffer.pop_back();
+
+				if (this->m_RemoveProxy.context != nullptr)
+					this->m_RemoveProxy();
 			}
 
 			void reserve(const size_t new_size) noexcept
@@ -182,10 +189,19 @@ namespace bob
 				this->m_ComponentBuffer.reserve(new_size);
 			}
 
+			void set_proxies(const add_proxy add, const remove_proxy remove) noexcept
+			{
+				this->m_AddProxy = add;
+				this->m_RemoveProxy = remove;
+			}
+
 		private:
 			std::vector<uint32_t> m_SparseBuffer;
 			std::vector<entity_handle> m_HandleBuffer;
 			std::vector<T> m_ComponentBuffer;
+
+			add_proxy m_AddProxy;
+			remove_proxy m_RemoveProxy;
 	};
 };
 #endif

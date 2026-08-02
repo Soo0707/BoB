@@ -1,14 +1,12 @@
 #ifndef BOB_GROUP
 #define BOB_GROUP
 
-#include <cassert>
 #include <cstddef>
-#include <cstdint>
-#include <utility>
 #include <vector>
 
 #include "bob/entity_handle.hpp"
 #include "bob/sparse_set.hpp"
+#include "bob/utilities.hpp"
 
 namespace bob
 {
@@ -40,7 +38,24 @@ namespace bob
 				return *(static_cast<group_field<T>*>(this)->data);
 			}
 
-			void add_callback(const entity_handle handle) noexcept
+			add_proxy add_callback() const noexcept
+			{
+				return add_proxy(this, &execute<decltype(this), &group<Components...>::m_AddCallbackImpl>);
+			}
+
+			remove_proxy remove_callback() const noexcept
+			{
+				return remove_proxy(this, &execute<decltype(this), &group<Components...>::m_RemoveCallbackImpl>);
+			}
+
+		private:
+			template <typename T>
+			void m_SetContainerPtr(std::vector<T>* ptr)
+			{
+				static_cast<group_field<T>*>(this)->data = ptr;
+			}
+
+			void m_AddCallbackImpl(const entity_handle handle) noexcept
 			{
 				const bool valid = (this->container<Components>().has(handle) && ...);
 
@@ -51,16 +66,9 @@ namespace bob
 				}
 			}
 
-			void remove_callback(const entity_handle handle) noexcept
+			void m_RemoveCallbackImpl() noexcept
 			{
 				this->m_Size--;
-			}
-
-		private:
-			template <typename T>
-			void m_SetContainerPtr(std::vector<T>* ptr)
-			{
-				static_cast<group_field<T>*>(this)->data = ptr;
 			}
 
 			size_t m_Size;

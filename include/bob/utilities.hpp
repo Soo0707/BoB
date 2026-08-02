@@ -5,30 +5,40 @@
 
 namespace bob
 {
-	struct add_callback
+	template <typename T, void(T::*F)() noexcept>
+	void execute(void* context)
 	{
-		void* context;
-		void(*proxy)(void* context, const bob::entity_handle);
-	};
+		T* concrete_context = static_cast<T*>(context);
+		(concrete_context->*F)();
+	}
 
-	template <typename T, void(T::*F)(const bob::entity_handle)>
-	void add_callback_proxy(void* context, const bob::entity_handle handle)
+	template <typename T, void(T::*F)(const bob::entity_handle) noexcept>
+	void execute(void* context, const bob::entity_handle handle)
 	{
 		T* concrete_context = static_cast<T*>(context);
 		(concrete_context->*F)(handle);
 	}
 
-	struct remove_callback
+	struct add_proxy
 	{
-		void* context;
-		void(*proxy)(void* context, const bob::entity_handle);
+		void* context = nullptr;
+		void(*callback)(void* context, const bob::entity_handle) = nullptr;
+
+		void operator()(const bob::entity_handle handle) noexcept
+		{
+			this->callback(this->context, handle);
+		}
 	};
 
-	template <typename T, void(T::*F)()>
-	void remove_callback_proxy(void* context)
+	struct remove_proxy
 	{
-		T* concrete_context = static_cast<T*>(context);
-		(concrete_context->*F)();
-	}
+		void* context = nullptr;
+		void(*callback)(void* context) = nullptr;
+
+		void operator()() noexcept
+		{
+			this->callback(this->context);
+		}
+	};
 };
 #endif
