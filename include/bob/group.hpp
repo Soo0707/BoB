@@ -7,8 +7,8 @@
 #include <utility>
 #include <vector>
 
-#include "entity_handle.hpp"
-#include "sparse_set.hpp"
+#include "bob/entity_handle.hpp"
+#include "bob/sparse_set.hpp"
 
 namespace bob
 {

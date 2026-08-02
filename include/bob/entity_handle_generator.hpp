@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "entity_handle.hpp"
+#include "bob/entity_handle.hpp"
 
 namespace bob
 {
