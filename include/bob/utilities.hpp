@@ -6,14 +6,14 @@
 namespace bob
 {
 	template <typename T, void(T::*F)() noexcept>
-	void execute(void* context)
+	void execute(void* context) noexcept
 	{
 		T* concrete_context = static_cast<T*>(context);
 		(concrete_context->*F)();
 	}
 
 	template <typename T, void(T::*F)(const bob::entity_handle) noexcept>
-	void execute(void* context, const bob::entity_handle handle)
+	void execute(void* context, const bob::entity_handle handle) noexcept
 	{
 		T* concrete_context = static_cast<T*>(context);
 		(concrete_context->*F)(handle);
@@ -22,7 +22,7 @@ namespace bob
 	struct add_proxy
 	{
 		void* context = nullptr;
-		void(*callback)(void* context, const bob::entity_handle) = nullptr;
+		void(*callback)(void* context, const bob::entity_handle) noexcept = nullptr;
 
 		void operator()(const bob::entity_handle handle) noexcept
 		{
@@ -33,7 +33,7 @@ namespace bob
 	struct remove_proxy
 	{
 		void* context = nullptr;
-		void(*callback)(void* context) = nullptr;
+		void(*callback)(void* context) noexcept = nullptr;
 
 		void operator()() noexcept
 		{

@@ -24,6 +24,16 @@ struct Vector2
 struct Tag
 {};
 
+struct Vector3
+{
+	float x;
+	float y;
+	float z;
+};
+
+struct OtherTag
+{};
+
 
 class RegistryTest
 {
@@ -33,6 +43,8 @@ class RegistryTest
 			this->m_Registry.register_component<std::string>();
 			this->m_Registry.register_component<Vector2>();
 			this->m_Registry.register_component<Tag>();
+
+			this->m_Registry.register_group<Vector3, OtherTag>();
 
 			this->m_Reserve();
 

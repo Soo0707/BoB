@@ -2,7 +2,6 @@
 #define BOB_GROUP
 
 #include <cstddef>
-#include <vector>
 
 #include "bob/entity_handle.hpp"
 #include "bob/sparse_set.hpp"
@@ -11,7 +10,10 @@
 namespace bob
 {
 	class abstract_group
-	{};
+	{
+		public:
+			virtual ~abstract_group() = default;
+	};
 
 	template <typename Component>
 	class group_field
@@ -33,24 +35,24 @@ namespace bob
 			}
 
 			template <typename T>
-			std::vector<T>& container() noexcept
+			sparse_set<T>& container() noexcept
 			{
 				return *(static_cast<group_field<T>*>(this)->data);
 			}
 
-			add_proxy add_callback() const noexcept
+			add_proxy add_callback() noexcept
 			{
-				return add_proxy(this, &execute<decltype(this), &group<Components...>::m_AddCallbackImpl>);
+				return add_proxy(this, &execute<group<Components...>, &group<Components...>::m_AddCallbackImpl>);
 			}
 
-			remove_proxy remove_callback() const noexcept
+			remove_proxy remove_callback() noexcept
 			{
-				return remove_proxy(this, &execute<decltype(this), &group<Components...>::m_RemoveCallbackImpl>);
+				return remove_proxy(this, &execute<group<Components...>, &group<Components...>::m_RemoveCallbackImpl>);
 			}
 
 		private:
 			template <typename T>
-			void m_SetContainerPtr(std::vector<T>* ptr)
+			void m_SetContainerPtr(sparse_set<T>* ptr)
 			{
 				static_cast<group_field<T>*>(this)->data = ptr;
 			}
@@ -61,7 +63,8 @@ namespace bob
 
 				if (valid)
 				{
-					// TODO: swap for all sets to the correct position
+					(this->container<Components>().shift(handle, this->m_Size + 1), ...);
+
 					this->m_Size++;
 				}
 			}

@@ -15,9 +15,6 @@
 #include <cassert>
 #include <cstddef>
 
-struct TagB
-{};
-
 class SparseSetTest
 {
 	public:
@@ -25,6 +22,7 @@ class SparseSetTest
 		{
 			this->m_AppendSparse();
 			this->m_TestMiddle();
+			this->m_TestShift();
 			this->m_TestComponentsThenRemove();
 		}
 
@@ -38,7 +36,7 @@ class SparseSetTest
 			for (size_t i = 0; i < 4; i++)
 			{
 				const bob::entity_handle handle = bob::entity_handle(static_cast<uint32_t>(i));
-				this->m_Sparse.add(handle);
+				this->m_Sparse.add(handle, i);
 			}
 
 			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.handles();
@@ -64,12 +62,32 @@ class SparseSetTest
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
 
+		void m_TestShift()
+		{
+			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
+
+			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.handles();
+
+			const bob::entity_handle zero = bob::entity_handle(0);
+			const bob::entity_handle last = bob::entity_handle(static_cast<uint32_t>(tag_handles.size() - 1));
+
+			this->m_Sparse.shift(zero, tag_handles.size() - 1);
+
+			assert(tag_handles[0] == bob::entity_handle(3));
+			assert(tag_handles[3] == zero);
+
+			assert(this->m_Sparse[zero] == 0);
+			assert(this->m_Sparse[last] == 3);
+
+			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+		}
+
 		void m_TestComponentsThenRemove()
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const std::vector<TagB> tag_components = this->m_Sparse.components();
-			assert(tag_components.size() == 4);
+			const std::vector<size_t> components = this->m_Sparse.components();
+			assert(components.size() == 4);
 
 			for (size_t i = 0; i < 4; ++i)
 			{
@@ -80,6 +98,6 @@ class SparseSetTest
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
 
-		bob::sparse_set<TagB> m_Sparse;
+		bob::sparse_set<size_t> m_Sparse;
 };
 #endif

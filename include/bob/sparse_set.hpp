@@ -75,19 +75,6 @@ namespace bob
 				return true;
 			}
 
-			const T* try_get(const entity_handle handle) const noexcept
-			{
-				if (this->has(handle))
-					return this[handle];
-
-				return nullptr;
-			}
-
-			T* try_get(const entity_handle handle) noexcept
-			{
-				return const_cast<T*>(std::as_const(*this).try_get(handle));
-			}
-
 			const T& operator[](const entity_handle handle) const noexcept
 			{
 				assert(
@@ -148,7 +135,8 @@ namespace bob
 				this->m_HandleBuffer.emplace_back(handle);
 				this->m_ComponentBuffer.emplace_back(std::forward<Arg>(args)...);
 
-				if (this->m_AddProxy.context != nullptr)
+				// nullptr check. valid context and callback must not be nullptr.
+				if (this->m_AddProxy.context != this->m_AddProxy.callback)
 					this->m_AddProxy(handle);
 			}
 
@@ -179,7 +167,8 @@ namespace bob
 				this->m_HandleBuffer.pop_back();
 				this->m_ComponentBuffer.pop_back();
 
-				if (this->m_RemoveProxy.context != nullptr)
+				// nullptr check
+				if (this->m_RemoveProxy.context != this->m_RemoveProxy.callback)
 					this->m_RemoveProxy();
 			}
 
@@ -187,6 +176,20 @@ namespace bob
 			{
 				this->m_HandleBuffer.reserve(new_size);
 				this->m_ComponentBuffer.reserve(new_size);
+			}
+
+			void shift(const bob::entity_handle entity, const size_t destination) noexcept
+			{
+				const bob::entity_handle destination_entity = this->m_HandleBuffer[destination];
+
+				if (entity == destination_entity)
+					return;
+
+				const size_t entity_dense_index = this->m_SparseBuffer[entity.index()];
+
+				std::swap(this->m_SparseBuffer[destination_entity.index()], this->m_SparseBuffer[entity.index()]);
+				std::swap(this->m_HandleBuffer[destination], this->m_HandleBuffer[entity_dense_index]);
+				std::swap(this->m_ComponentBuffer[destination], this->m_ComponentBuffer[entity_dense_index]);
 			}
 
 			void set_proxies(const add_proxy add, const remove_proxy remove) noexcept
