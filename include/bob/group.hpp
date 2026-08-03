@@ -68,7 +68,8 @@ namespace bob
 
 				if (valid)
 				{
-					(this->container<Components>().shift(handle, this->m_Size + 1), ...);
+					if (this->m_Size != 0)
+						(this->container<Components>().shift(handle, this->m_Size - 1), ...);
 
 					this->m_Size++;
 				}

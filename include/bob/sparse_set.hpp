@@ -180,17 +180,14 @@ namespace bob
 
 			void shift(const bob::entity_handle entity, const size_t destination) noexcept
 			{
-				const bob::entity_handle destination_entity = this->m_HandleBuffer[destination];
-
-				assert(
-						destination < this->m_HandleBuffer.size() &&
-						"BOB [sparse_set][shift()]: destination larger than dense layer size."
-						);
-
-				if (entity == destination_entity)
+				if (destination == 0)
 					return;
 
 				const size_t entity_dense_index = this->m_SparseBuffer[entity.index()];
+				const bob::entity_handle destination_entity = this->m_HandleBuffer[destination];
+
+				if (entity == destination_entity)
+					return;
 
 				std::swap(this->m_SparseBuffer[destination_entity.index()], this->m_SparseBuffer[entity.index()]);
 				std::swap(this->m_HandleBuffer[destination], this->m_HandleBuffer[entity_dense_index]);

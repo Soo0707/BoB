@@ -55,11 +55,11 @@ class RegistryTest
 			this->m_IterateStrings();
 			this->m_IterateStringsAndVectors();
 			this->m_IterateAll();
-/*
+
 			this->m_TestGroupAdd();
 			this->m_TestGroupSync();
 			this->m_TestGroupRemove();
-*/
+
 			this->m_RemoveEntityTwo();
 			this->m_RemoveEntityOne();
 			this->m_RemoveEntityZero();
@@ -122,8 +122,6 @@ class RegistryTest
 			this->m_Registry.add<Vector2>(third_handle, 12.0f, 14.0f);
 			this->m_Registry.add<std::string>(third_handle, "2");
 
-			this->m_Registry.add<Vector3>(third_handle, 12.0f, 14.0f, 13.4f);
-			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
 
@@ -234,7 +232,7 @@ class RegistryTest
 			for (int i = 0; i < 10; ++i)
 				this->m_Registry.add<int>(bob::entity_handle(i), i);
 
-			this->m_Registry.add<int>(bob::entity_handle(2), 12);
+			this->m_Registry.add<Vector3>(bob::entity_handle(7), 12.0f, 14.0f, 13.4f);
 			assert(test_group.size() == 2);
 
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
