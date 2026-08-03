@@ -50,6 +50,11 @@ namespace bob
 				return remove_proxy(this, &execute<group<Components...>, &group<Components...>::m_RemoveCallbackImpl>);
 			}
 
+			size_t size() const noexcept
+			{
+				return this->m_Size;
+			}
+
 		private:
 			template <typename T>
 			void m_SetContainerPtr(sparse_set<T>* ptr)

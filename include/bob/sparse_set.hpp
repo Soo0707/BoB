@@ -59,12 +59,12 @@ namespace bob
 				if (handle == invalid_handle)
 					return false;
 				
-				if (handle.index() > static_cast<uint32_t>(this->m_SparseBuffer.size()))
+				if (handle.index() >= static_cast<uint32_t>(this->m_SparseBuffer.size()))
 					return false;
 
 				const uint32_t dense_index = this->m_SparseBuffer[handle.index()];
 
-				if (dense_index > this->m_HandleBuffer.size())
+				if (dense_index >= this->m_HandleBuffer.size())
 					return false;
 
 				const entity_handle stored_handle = this->m_HandleBuffer[dense_index];
@@ -181,6 +181,11 @@ namespace bob
 			void shift(const bob::entity_handle entity, const size_t destination) noexcept
 			{
 				const bob::entity_handle destination_entity = this->m_HandleBuffer[destination];
+
+				assert(
+						destination < this->m_HandleBuffer.size() &&
+						"BOB [sparse_set][shift()]: destination larger than dense layer size."
+						);
 
 				if (entity == destination_entity)
 					return;

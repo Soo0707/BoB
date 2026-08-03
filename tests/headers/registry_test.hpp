@@ -31,10 +31,6 @@ struct Vector3
 	float z;
 };
 
-struct OtherTag
-{};
-
-
 class RegistryTest
 {
 	public:
@@ -44,7 +40,7 @@ class RegistryTest
 			this->m_Registry.register_component<Vector2>();
 			this->m_Registry.register_component<Tag>();
 
-			this->m_Registry.register_group<Vector3, OtherTag>();
+			this->m_Registry.register_group<Vector3, int>();
 
 			this->m_Reserve();
 
@@ -59,7 +55,11 @@ class RegistryTest
 			this->m_IterateStrings();
 			this->m_IterateStringsAndVectors();
 			this->m_IterateAll();
-
+/*
+			this->m_TestGroupAdd();
+			this->m_TestGroupSync();
+			this->m_TestGroupRemove();
+*/
 			this->m_RemoveEntityTwo();
 			this->m_RemoveEntityOne();
 			this->m_RemoveEntityZero();
@@ -92,6 +92,9 @@ class RegistryTest
 
 			this->m_Registry.add<std::string>(first_handle, "0");
 			
+			this->m_Registry.add<Vector3>(first_handle, 6.0f, 7.0f, 6.7f);
+			this->m_Registry.add<int>(first_handle, 6);
+			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
 
@@ -118,6 +121,8 @@ class RegistryTest
 			this->m_Registry.add<Tag>(third_handle);
 			this->m_Registry.add<Vector2>(third_handle, 12.0f, 14.0f);
 			this->m_Registry.add<std::string>(third_handle, "2");
+
+			this->m_Registry.add<Vector3>(third_handle, 12.0f, 14.0f, 13.4f);
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
@@ -214,6 +219,50 @@ class RegistryTest
 			assert(string_set[handle] == "2");
 			assert(vector_set[handle].x == 12.0f);
 			assert(vector_set[handle].y == 14.0f);
+
+			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+		}
+
+		void m_TestGroupAdd()
+		{
+			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
+
+			const auto& test_group = this->m_Registry.containers<Vector3, int>();
+			assert(test_group.size() == 1);
+
+			// fill the int sparse set so there is discontinuity
+			for (int i = 0; i < 10; ++i)
+				this->m_Registry.add<int>(bob::entity_handle(i), i);
+
+			this->m_Registry.add<int>(bob::entity_handle(2), 12);
+			assert(test_group.size() == 2);
+
+			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+		}
+
+		void m_TestGroupSync()
+		{
+			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
+
+			const auto& test_group = this->m_Registry.containers<Vector3, int>();
+
+			const std::vector<bob::entity_handle>& vec3_handles = this->m_Registry.container<Vector3>().handles();
+			const std::vector<bob::entity_handle>& int_handles = this->m_Registry.container<int>().handles();
+
+			for (int i = 0, n = test_group.size(); i < n; ++i)
+				assert(vec3_handles[i] == int_handles[i]);
+
+			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+		}
+
+		void m_TestGroupRemove()
+		{
+			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
+
+			const auto& test_group = this->m_Registry.containers<Vector3, int>();
+
+			this->m_Registry.remove<int>(bob::entity_handle(2));
+			assert(test_group.size() == 1);
 
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}

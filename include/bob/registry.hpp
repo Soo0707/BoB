@@ -135,6 +135,21 @@ namespace bob
 				return const_cast<sparse_set<T>&>(std::as_const(*this).container<T>());
 			}
 
+			template <typename... T>
+			const group<T...>& containers() const noexcept
+			{
+				const size_t group_index = this->m_GroupIndex<T...>();
+
+				assert(group_index < this->m_Groups.size() && "BOB [registry][group()]: called on unregistered group");
+				return *static_cast<group<T...>*>(this->m_Groups[group_index].get());
+			}
+
+			template <typename... T>
+			group<T...>& containers() noexcept
+			{
+				return const_cast<group<T...>&>(std::as_const(*this).containers<T...>());
+			}
+
 		private:
 			template <typename... T>
 			size_t m_GroupIndex() const noexcept

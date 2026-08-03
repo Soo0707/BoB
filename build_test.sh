@@ -3,7 +3,7 @@
 g++ tests/test.cpp\
 	-o /mnt/tmpfs/test\
 	-std=c++20\
-	-O3\
+	-O0\
 	-g\
 	-Iinclude\
 	-Itests/headers\
