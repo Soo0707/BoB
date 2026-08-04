@@ -68,16 +68,15 @@ namespace bob
 
 				if (valid)
 				{
-					if (this->m_Size != 0)
-						(this->container<Components>().shift(handle, this->m_Size - 1), ...);
-
 					this->m_Size++;
+					(this->container<Components>().shift(handle, this->m_Size - 1), ...);
 				}
 			}
 
-			void m_RemoveCallbackImpl() noexcept
+			void m_RemoveCallbackImpl(const entity_handle handle) noexcept
 			{
 				this->m_Size--;
+				(this->container<Components>().shift(handle, this->m_Size - 1), ...);
 			}
 
 			size_t m_Size;

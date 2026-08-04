@@ -56,8 +56,7 @@ namespace bob
 
 			bool has(const entity_handle handle) const noexcept
 			{
-				if (handle == invalid_handle)
-					return false;
+				assert(handle != invalid_handle && "BOB [sparse_set][has()]: invalid handle");
 				
 				if (handle.index() >= static_cast<uint32_t>(this->m_SparseBuffer.size()))
 					return false;
@@ -128,6 +127,11 @@ namespace bob
 			template <typename... Arg>
 			void add(const entity_handle handle, Arg&&... args) noexcept
 			{
+				assert(
+						!this->has(handle) &&
+						"BOB [sparse_set][add()]: attempted to add component to entity which already exists in the set"
+						);
+
 				if (handle.index() >= this->m_SparseBuffer.size())
 					this->m_SparseBuffer.resize(handle.index() + 1, invalid_index);
 
@@ -180,9 +184,6 @@ namespace bob
 
 			void shift(const bob::entity_handle entity, const size_t destination) noexcept
 			{
-				if (destination == 0)
-					return;
-
 				const size_t entity_dense_index = this->m_SparseBuffer[entity.index()];
 				const bob::entity_handle destination_entity = this->m_HandleBuffer[destination];
 
