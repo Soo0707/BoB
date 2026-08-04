@@ -57,7 +57,7 @@ namespace bob
 
 		private:
 			template <typename T>
-			void m_SetContainerPtr(sparse_set<T>* ptr)
+			void m_SetContainerPtr(sparse_set<T>* ptr) noexcept
 			{
 				static_cast<group_field<T>*>(this)->data = ptr;
 			}

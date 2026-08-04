@@ -1,6 +1,6 @@
 <h1 align="center">BoB</h1>
 
-BoB (Bundle of Boilerplate) is a simple, barebones, header-only sparse set-based Entity Component System written in C++20.
+BoB (Bundle of Boilerplate) is a simple, barebones, header-only sparse set-based [Entity Component System](https://github.com/SanderMertens/ecs-faq) written in C++20.
 
 ## Why BoB?
 
@@ -10,22 +10,12 @@ The goal of BoB is to be as simple, and as transparant as possible. You are enco
 
 Every component of BoB is built upon functionality that the C++ standard library provides. There are no complex iterators or fancy intermediate wrapper objects. Unless necessary, everything handed to you is a `std::vector`.
 
-## Why use an ECS?
-
-There are many [advantages of using an ECS](https://github.com/SanderMertens/ecs-faq) already highlighted by the author of Flecs.
-
-I believe an ECS promotes composition of simple plain old data components and the placement of said components in a contiguous manner in memory which entails
-
-- **Better Cache Locality:** Components are small and their sequential order in memory all but guarantees cache hits
-- **Aggressive Compiler Optimisations:** Having less fluff around an object means the compiler can more aggressively make use of SIMD and other optimisations
-
 ## What does BoB offer?
 
-BoB consists of:
-
-- Entity Handle
+- Generational Entity Handle
 - Entity Handle Generator
 - Sparse Set
+- Groups
 - Registry
 - Thread Pool
 
@@ -39,8 +29,6 @@ This assumes a certain project folder structure.
 ## Example
 
 ```c++
-#include <string>
-
 #include "bob/bob.hpp"
 #include "example_components.hpp"
 
@@ -49,36 +37,52 @@ int main()
     bob::registry registry;
 
     // components must be registered first
-    registry.register_component<Vector2>();
     registry.register_component<PlayerTag>();
+
+    // performance critical components should be registered as a group
+    // grouped components are still owned by the registry and can be treated the same as non-grouped sparse sets
+    registry.register_group<Position, Velocity>();
 
     // to create an entity, request for an entity_handle;
     const bob::entity_handle entity_zero = registry.create_handle();
 
-    // add a Vector2 { 6.0f, 7.0f } component to the entity
-    registry.add<Vector2>(entity_zero, 6.0f, 7.0f);
+    // add a Position { 6.0f, 7.0f } component to the entity
+    registry.add<Position>(entity_zero, 6.0f, 7.0f);
+
+    // add a Velocity { 0.0f, 0.0f } component to the entity
+    registry.add<Velocity>(entity_zero, 0.0f, 0.0f);
 
     // add a PlayerTag to the entity
     registry.add<PlayerTag>(entity_zero);
 
-    // get sparse set containing Vector2
-    bob::sparse_set<Vector2>& vector2_set = registry.container<Vector2>();
+    // get sparse set containing Position
+    bob::sparse_set<Position>& position_set = registry.container<Position>();
     
+    // get group containing Position and Velocity
+    bob::group<Position, Velocity>& movement_group = registry.containers<Position, Velocity>();
+
+    // get sparse set containing Velocity from a group
+    bob::sparse_set<Velocity>& velocity_set = movement_group.container<Velocity>();
+    
+    // get dense layer of the Position sparse set
+    std::vector<Position>& positions = position_set.components();
+
+    // get dense layer of the Velociy sparse set
+    std::vector<Velocity>& velocity = velocity_set.components();
+
+    // since Position and Velocity are part of the same group
+    // their dense layers are perfect SoA
+    for (size_t i = 0, n = movement_group.size(); i < n; ++i)
+    {
+        positions[i].x += velocity[i].x;
+        positions[i].y += velocity[i].y;
+    }
+
     // get sparse set containing PlayerTag
     bob::sparse_set<PlayerTag>& player_set = registry.container<PlayerTag>();
 
-    // get dense layer of Vector2 sparse set
-    std::vector<Vector2>& vectors = vector2_set.components();
-    
-    // cache friendly iteration of components
-    for (auto& v : vectors)
-    {
-        v.x += 6.0f;
-        v.y += 7.0f;
-    }
-
-    // get entities that contain BOTH Vector2 and PlayerTag
-    const std::vector<bob::entity_handle>& iter = registry.iterator<Vector2, PlayerTag>();
+    // get entities that contain BOTH Position and PlayerTag
+    const std::vector<bob::entity_handle>& iter = registry.iterator<Position, PlayerTag>();
 
     // accessing components through entity handles, use sparingly
     for (const bob::entity_handle h : iter)
@@ -86,12 +90,12 @@ int main()
         // O(1) per lookup using operator[] but is not cache friendly
         // involves jumping from sparse to dense layer
 
-        Vector2& vec = vector2_set[h];
+        Position& vec = position_set[h];
         PlayerTag& tag = player_set[h];
     }
 
     // remove component(s) from an entity
-    registry.remove<Vector2, PlayerTag>(entity_zero);
+    registry.remove<Position, Velocity, PlayerTag>(entity_zero);
 
     // recycle the entity handle
     registry.release_handle(entity_zero);
@@ -125,9 +129,6 @@ uint32_t value() const
 // returns if an entity is in the sparse set
 bool has(const entity_handle) const
 
-// returns pointer to T if an entity is in the sparse set and nullptr otherwise
-T* try_get(const entity_handle)
-
 // returns reference to T by using operator[] and an entity handle
 T& operator[](const entity_handle handle)
 
@@ -141,11 +142,27 @@ const std::vector<entity_handle>& handles() const
 void reserve(const size_t new_size)
 ```
 
+**Namespace:** `bob::group`
+
+```c++
+// NOTE: a group does not own the sparse sets
+// groups implements entt-like groups but does not support subgroups
+
+// returns a sparse set of T as long as T is part of the group
+sparse_set<T>& container()
+
+// returns the size of the group
+size_t size()
+```
+
 **Namespace:** `bob::registry`
 
 ```c++
 // register a component
-void register_component<T>();
+void register_component<T>()
+
+// register a group of pack T...
+void register_group<T...>()
 
 // returns next successive entity handle
 entity_handle create_handle()
@@ -170,6 +187,9 @@ const std::vector<entity_handle>& iterator<First, After...>() const
 
 // returns a sparse set of component type T
 sparse_set<T>& container<T>()
+
+// returns a registered group of pack T...
+group<T...>& containers<T...>()
 ```
 
 **Namespace:** `bob::thread_pool`
