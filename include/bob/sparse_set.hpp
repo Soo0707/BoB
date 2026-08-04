@@ -146,6 +146,10 @@ namespace bob
 
 			void remove(const entity_handle handle) noexcept
 			{
+				// nullptr check
+				if (this->m_RemoveProxy.context != this->m_RemoveProxy.callback)
+					this->m_RemoveProxy(handle);
+
 				const uint32_t entity_dense_index = this->m_SparseBuffer[handle.index()];
 
 				if (entity_dense_index == bob::invalid_index)
@@ -170,10 +174,6 @@ namespace bob
 
 				this->m_HandleBuffer.pop_back();
 				this->m_ComponentBuffer.pop_back();
-
-				// nullptr check
-				if (this->m_RemoveProxy.context != this->m_RemoveProxy.callback)
-					this->m_RemoveProxy();
 			}
 
 			void reserve(const size_t new_size) noexcept
@@ -195,7 +195,7 @@ namespace bob
 				std::swap(this->m_ComponentBuffer[destination], this->m_ComponentBuffer[entity_dense_index]);
 			}
 
-			void set_proxies(const add_proxy add, const remove_proxy remove) noexcept
+			void set_proxies(const proxy add, const proxy remove) noexcept
 			{
 				this->m_AddProxy = add;
 				this->m_RemoveProxy = remove;
@@ -206,8 +206,8 @@ namespace bob
 			std::vector<entity_handle> m_HandleBuffer;
 			std::vector<T> m_ComponentBuffer;
 
-			add_proxy m_AddProxy;
-			remove_proxy m_RemoveProxy;
+			proxy m_AddProxy;
+			proxy m_RemoveProxy;
 	};
 };
 #endif

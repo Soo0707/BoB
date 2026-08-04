@@ -40,14 +40,14 @@ namespace bob
 				return *(static_cast<group_field<T>*>(this)->data);
 			}
 
-			add_proxy add_callback() noexcept
+			proxy add_callback() noexcept
 			{
-				return add_proxy(this, &execute<group<Components...>, &group<Components...>::m_AddCallbackImpl>);
+				return proxy(this, &execute<group<Components...>, &group<Components...>::m_AddCallbackImpl>);
 			}
 
-			remove_proxy remove_callback() noexcept
+			proxy remove_callback() noexcept
 			{
-				return remove_proxy(this, &execute<group<Components...>, &group<Components...>::m_RemoveCallbackImpl>);
+				return proxy(this, &execute<group<Components...>, &group<Components...>::m_RemoveCallbackImpl>);
 			}
 
 			size_t size() const noexcept
@@ -75,8 +75,13 @@ namespace bob
 
 			void m_RemoveCallbackImpl(const entity_handle handle) noexcept
 			{
-				this->m_Size--;
-				(this->container<Components>().shift(handle, this->m_Size - 1), ...);
+				const bool valid = (this->container<Components>().has(handle) && ...);
+
+				if (valid)
+				{
+					(this->container<Components>().shift(handle, this->m_Size - 1), ...);
+					this->m_Size--;
+				}
 			}
 
 			size_t m_Size;

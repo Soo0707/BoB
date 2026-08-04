@@ -232,6 +232,7 @@ class RegistryTest
 			this->m_Registry.add<Vector3>(bob::entity_handle(7), 12.0f, 14.0f, 13.4f);
 			this->m_Registry.add<Vector3>(bob::entity_handle(3), 6.0f, 7.0f, 6.7f);
 			this->m_Registry.add<Vector3>(bob::entity_handle(9), 6.0f, 7.0f, 6.7f);
+			this->m_Registry.add<Vector3>(bob::entity_handle(2), 6.0f, 7.0f, 6.7f);
 
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
@@ -245,7 +246,7 @@ class RegistryTest
 			const std::vector<bob::entity_handle>& vec3_handles = this->m_Registry.container<Vector3>().handles();
 			const std::vector<bob::entity_handle>& int_handles = this->m_Registry.container<int>().handles();
 
-			for (int i = 0, n = test_group.size(); i < n; ++i)
+			for (size_t i = 0, n = test_group.size(); i < n; ++i)
 				assert(vec3_handles[i] == int_handles[i]);
 
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
@@ -257,18 +258,15 @@ class RegistryTest
 
 			const auto& test_group = this->m_Registry.containers<Vector3, int>();
 
-			this->m_Registry.remove<int>(bob::entity_handle(7));
+			this->m_Registry.remove<int>(bob::entity_handle(3));
 			
 			const std::vector<bob::entity_handle>& vec3_handles = this->m_Registry.container<Vector3>().handles();
 			const std::vector<bob::entity_handle>& int_handles = this->m_Registry.container<int>().handles();
 
-			for (int i = 0, n = test_group.size(); i < n; ++i)
-			{
+			for (size_t i = 0, n = test_group.size(); i < n; ++i)
 				assert(vec3_handles[i] == int_handles[i]);
-				//std::cout << "vec3 " << vec3_handles[i].index() << " int " << int_handles[i].index() << std::endl;
-			}
 
-			assert(test_group.size() == 2);
+			assert(test_group.size() == 3);
 
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
@@ -320,5 +318,4 @@ class RegistryTest
 
 		bob::registry m_Registry;
 };
-
 #endif

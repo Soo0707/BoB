@@ -62,8 +62,8 @@ namespace bob
 
 				group<T...>* new_group = static_cast<group<T...>*>(this->m_Groups[group_index].get());
 
-				add_proxy add = new_group->add_callback();
-				remove_proxy remove = new_group->remove_callback();
+				proxy add = new_group->add_callback();
+				proxy remove = new_group->remove_callback();
 
 				(this->container<T>().set_proxies(add, remove), ...);
 			}
