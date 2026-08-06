@@ -178,7 +178,7 @@ namespace bob
 				assert(job.end < data.size() && "BOB [thread_pool][m_ProcessChunkGroup()]: end is larger than group size");
 
 				for (size_t i = static_cast<size_t>(job.begin), n = static_cast<size_t>(job.end); i < n; ++i)
-					callback(data.template container<T>..., i);
+					callback(data.template container<T>().components()..., i);
 			}
 
 			template <typename F, typename... T>
@@ -188,7 +188,7 @@ namespace bob
 				assert(end == data.size() && "BOB [thread_pool][m_ProcessSingleGroup()]: end does not reach the actual end");
 
 				for (size_t i = begin; i < end; ++i)
-					callback(data.template container<T>..., i);
+					callback(data.template container<T>().components()..., i);
 			}
 
 			void m_WorkerFunction(const uint32_t index) noexcept

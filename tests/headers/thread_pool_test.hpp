@@ -9,11 +9,12 @@
 #ifndef BOB_THREAD_POOL_TEST
 #define BOB_THREAD_POOL_TEST
 
-#include "bob/thread_pool.hpp"
-
 #include <iostream>
+#include <cstddef>
 #include <vector>
 #include <chrono>
+
+#include "bob/bob.hpp"
 
 class ThreadPoolTest
 {
@@ -22,6 +23,7 @@ class ThreadPoolTest
 			m_Pool(std::thread::hardware_concurrency())
 		{
 			this->m_TestParallelise();
+			this->m_TestParalleliseGrouped();
 			this->m_TestSingle();
 		}
 
@@ -48,6 +50,44 @@ class ThreadPoolTest
 				assert(data_vector[i] == 2 * i);
 
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+		}
+
+		void m_TestParalleliseGrouped()
+		{
+			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
+
+			bob::registry r;
+
+			r.register_group<int, size_t>();
+
+			for (size_t i = 0; i < 1048575; ++i)
+			{
+				r.add<int>(bob::entity_handle(static_cast<uint32_t>(i)), static_cast<int>(i));
+				r.add<size_t>(bob::entity_handle(static_cast<uint32_t>(i)), i);
+			}
+
+			bob::group<int, size_t>& test_group = r.containers<int, size_t>();
+			
+			auto func = [](std::vector<int>& ints, std::vector<size_t>& sizes, const size_t i){
+				sizes[i] += ints[i];
+			};
+	
+			auto start = std::chrono::high_resolution_clock::now();
+
+			this->m_Pool.parallelise(test_group, func, 1);
+
+			auto end = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+			
+			std::vector<size_t>& data = r.container<size_t>().components();
+			for (size_t i = 0, n = data.size(); i < n; ++i)
+				assert(data[i] == 2 * i);
+
+			std::cout << "Grouped chunking took " << duration << "\n";
+			std::cout << "NOTE: execution time becomes comparable without debug and sanitisation compile flags\n";
+
+			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
+
 		}
 
 		void m_TestSingle()
