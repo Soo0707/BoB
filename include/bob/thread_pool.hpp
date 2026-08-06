@@ -16,6 +16,8 @@
 #include <thread>
 #include <vector>
 
+#include "bob/group.hpp"
+
 namespace bob
 {
 	class thread_pool;
@@ -71,18 +73,18 @@ namespace bob
 			// we take in F as a copy to guarantee it is at the bottom of the stack frame. making a pointer is now safe again.
 			// F&& is not guaranteed to outlive this function so taking a pointer to F would be dangerous.
 			// i'm pretty sure copy-elison will help us out here anyway.
-			template <typename T, typename F>
+			template <typename F, typename T>
 			void parallelise(std::vector<T>& data, F callback, const size_t grain = 20000) noexcept
 			{
 				if (data.size() < grain)
 				{
-					m_ProcessSingle(data, std::forward<F>(callback), 0, data.size());
+					this->m_ProcessSingle(data, std::forward<F>(callback), 0, data.size());
 					return;
 				}
 
 				void* data_ptr = static_cast<void*>(&data);
 				void* lambda_ptr = static_cast<void*>(&callback);
-				void (thread_pool::*target_pmf)(const job_wrapper&) const noexcept = &thread_pool::m_ProcessChunk<T, F>;
+				void (thread_pool::*target_pmf)(const job_wrapper&) const noexcept = &thread_pool::m_ProcessChunk<F, T>;
 
 				const size_t n_threads = this->m_Workers.size();
 				// +1 bc we actually have 1 more thread, the one executing this function
@@ -108,9 +110,42 @@ namespace bob
 				// there is no guarantee what happens immediately after the barrier is released
 			}
 
+			template <typename F, typename... T>
+			void parallelise(group<T...>& data, F callback, const size_t grain = 20000) noexcept
+			{
+				if (data.size() < grain)
+				{
+					this->m_ProcessSingleGroup(data, std::forward<F>(callback), 0, data.size());
+					return;
+				}
+
+				void* data_ptr = static_cast<void*>(&data);
+				void* lambda_ptr = static_cast<void*>(&callback);
+				void (thread_pool::*target_pmf)(const job_wrapper&) const noexcept = &thread_pool::m_ProcessChunkGroup<F, T...>;
+
+				const size_t n_threads = this->m_Workers.size();
+				const uint32_t job_size = static_cast<uint32_t>(data.size() / (n_threads + 1));
+
+				uint32_t last_job_end = 0;
+				this->m_Jobs.clear();
+
+				for (size_t i = 0; i < n_threads; ++i)
+				{
+					const uint32_t begin = job_size * static_cast<uint32_t>(i);
+					const uint32_t end = begin + job_size;
+					last_job_end = end;
+
+					this->m_Jobs.emplace_back(data_ptr, lambda_ptr, target_pmf, begin, end);
+				}
+
+				this->m_Barrier.arrive_and_wait();
+				this->m_ProcessSingleGroup(data, callback, last_job_end, data.size());
+				this->m_Barrier.arrive_and_wait();
+			}
+
 		private:
 			// the way the callback is captured might be unsafe idk
-			template <typename T, typename F>
+			template <typename F, typename T>
 			void m_ProcessChunk(const job_wrapper& job) const noexcept
 			{
 				std::vector<T>& data = *static_cast<std::vector<T>*>(job.data);
@@ -123,7 +158,7 @@ namespace bob
 					callback(data[i]);
 			}
 
-			template <typename T, typename F>
+			template <typename F, typename T>
 			void m_ProcessSingle(std::vector<T>& data, F&& callback, const size_t begin, const size_t end) const noexcept
 			{
 				assert(begin < data.size() && "BOB [thread_pool][m_ProcessSingle()]: begin is larger than vector size");
@@ -131,6 +166,29 @@ namespace bob
 
 				for (size_t i = begin; i < end; ++i)
 					callback(data[i]);
+			}
+
+			template <typename F, typename... T>
+			void m_ProcessChunkGroup(const job_wrapper& job) const noexcept
+			{
+				group<T...>& data = *static_cast<group<T...>*>(job.data);
+				const F& callback = *static_cast<F*>(job.lambda);
+				
+				assert(job.begin < data.size() && "BOB [thread_pool][m_ProcessChunkGroup()]: begin is larger than group size");
+				assert(job.end < data.size() && "BOB [thread_pool][m_ProcessChunkGroup()]: end is larger than group size");
+
+				for (size_t i = static_cast<size_t>(job.begin), n = static_cast<size_t>(job.end); i < n; ++i)
+					callback(data.template container<T>..., i);
+			}
+
+			template <typename F, typename... T>
+			void m_ProcessSingleGroup(group<T...>& data, F&& callback, const size_t begin, const size_t end) const noexcept
+			{
+				assert(begin < data.size() && "BOB [thread_pool][m_ProcessSingleGroup()]: begin is larger than group size");
+				assert(end == data.size() && "BOB [thread_pool][m_ProcessSingleGroup()]: end does not reach the actual end");
+
+				for (size_t i = begin; i < end; ++i)
+					callback(data.template container<T>..., i);
 			}
 
 			void m_WorkerFunction(const uint32_t index) noexcept
