@@ -6,10 +6,10 @@
  * See the LICENSE file in the project root for full license text.
  */
 
-#ifndef BOB_ENTITY_HANDLE_TEST
-#define BOB_ENTITY_HANDLE_TEST
+#ifndef BOB_ENTITY_TEST
+#define BOB_ENTITY_TEST
 
-#include "bob/entity_handle.hpp"
+#include "bob/entity.hpp"
 
 #include <iostream>
 #include <cassert>
@@ -33,7 +33,7 @@ class EntityHandleTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle zero_handle = bob::entity_handle(0);
+			const bob::entity zero_handle = bob::entity(0);
 			
 			assert(zero_handle.index() == 0);
 			assert(zero_handle.generation() == 0);
@@ -46,7 +46,7 @@ class EntityHandleTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 			
-			const bob::entity_handle six_handle = bob::entity_handle(6);
+			const bob::entity six_handle = bob::entity(6);
 
 			assert(six_handle.index() == 6);
 			assert(six_handle.generation() == 0);
@@ -59,7 +59,7 @@ class EntityHandleTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle seventh_generation = bob::entity_handle(0x700000);
+			const bob::entity seventh_generation = bob::entity(0x700000);
 
 			assert(seventh_generation.index() == 0);
 			assert(seventh_generation.generation() == 7);
@@ -73,7 +73,7 @@ class EntityHandleTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle mixed = bob::entity_handle(0x600007);
+			const bob::entity mixed = bob::entity(0x600007);
 
 			assert(mixed.index() == 7);
 			assert(mixed.generation() == 6);
@@ -86,8 +86,8 @@ class EntityHandleTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle first_same = bob::entity_handle(0x400005);
-			const bob::entity_handle second_same = bob::entity_handle(0x400005);
+			const bob::entity first_same = bob::entity(0x400005);
+			const bob::entity second_same = bob::entity(0x400005);
 
 			assert(first_same == second_same);
 
@@ -98,8 +98,8 @@ class EntityHandleTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle first_diff = bob::entity_handle(0x400005);
-			const bob::entity_handle second_diff = bob::entity_handle(0x400006);
+			const bob::entity first_diff = bob::entity(0x400005);
+			const bob::entity second_diff = bob::entity(0x400006);
 
 			assert(first_diff != second_diff);
 			

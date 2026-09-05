@@ -88,8 +88,8 @@ class RegistryTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle first_handle = this->m_Registry.create_handle();
-			assert(first_handle == bob::entity_handle(0));
+			const bob::entity first_handle = this->m_Registry.create_handle();
+			assert(first_handle == bob::entity(0));
 
 			this->m_Registry.add<std::string>(first_handle, "0");
 
@@ -100,8 +100,8 @@ class RegistryTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle second_handle = this->m_Registry.create_handle();
-			assert(second_handle == bob::entity_handle(1));
+			const bob::entity second_handle = this->m_Registry.create_handle();
+			assert(second_handle == bob::entity(1));
 
 			this->m_Registry.add<Vector2>(second_handle, 6.0f, 7.0f);
 			this->m_Registry.add<std::string>(second_handle, "1");
@@ -113,8 +113,8 @@ class RegistryTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle third_handle = this->m_Registry.create_handle();
-			assert(third_handle == bob::entity_handle(2));
+			const bob::entity third_handle = this->m_Registry.create_handle();
+			assert(third_handle == bob::entity(2));
 
 			this->m_Registry.add<Tag>(third_handle);
 			this->m_Registry.add<Vector2>(third_handle, 12.0f, 14.0f);
@@ -170,7 +170,7 @@ class RegistryTest
 
 			for (size_t i = 0, n = string_handles.size(); i < n; ++i)
 			{
-				const bob::entity_handle handle = string_handles[i];
+				const bob::entity handle = string_handles[i];
 
 				assert(string_set[handle] == std::to_string(i));
 			}
@@ -190,7 +190,7 @@ class RegistryTest
 
 			for (size_t i = 0, n = string_vector_handles.size(); i < n; ++i)
 			{
-				const bob::entity_handle handle = string_vector_handles[i];
+				const bob::entity handle = string_vector_handles[i];
 
 				assert(string_set[handle] == std::to_string(i + 1));
 				assert(vector_set[handle].x == static_cast<float>((i + 1) * 6.0f));
@@ -210,7 +210,7 @@ class RegistryTest
 			const bob::sparse_set<std::string>& string_set = this->m_Registry.container<std::string>();
 			const bob::sparse_set<Vector2>& vector_set = this->m_Registry.container<Vector2>();
 
-			const bob::entity_handle handle = string_vector_tag_handles[0];
+			const bob::entity handle = string_vector_tag_handles[0];
 
 			assert(string_set[handle] == "2");
 			assert(vector_set[handle].x == 12.0f);
@@ -227,12 +227,12 @@ class RegistryTest
 
 			// fill the int sparse set so there is discontinuity
 			for (int i = 0; i < 10; ++i)
-				this->m_Registry.add<int>(bob::entity_handle(i), i);
+				this->m_Registry.add<int>(bob::entity(i), i);
 
-			this->m_Registry.add<Vector3>(bob::entity_handle(7), 12.0f, 14.0f, 13.4f);
-			this->m_Registry.add<Vector3>(bob::entity_handle(3), 6.0f, 7.0f, 6.7f);
-			this->m_Registry.add<Vector3>(bob::entity_handle(9), 6.0f, 7.0f, 6.7f);
-			this->m_Registry.add<Vector3>(bob::entity_handle(2), 6.0f, 7.0f, 6.7f);
+			this->m_Registry.add<Vector3>(bob::entity(7), 12.0f, 14.0f, 13.4f);
+			this->m_Registry.add<Vector3>(bob::entity(3), 6.0f, 7.0f, 6.7f);
+			this->m_Registry.add<Vector3>(bob::entity(9), 6.0f, 7.0f, 6.7f);
+			this->m_Registry.add<Vector3>(bob::entity(2), 6.0f, 7.0f, 6.7f);
 
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
@@ -243,8 +243,8 @@ class RegistryTest
 
 			const auto& test_group = this->m_Registry.containers<Vector3, int>();
 
-			const std::vector<bob::entity_handle>& vec3_handles = this->m_Registry.container<Vector3>().handles();
-			const std::vector<bob::entity_handle>& int_handles = this->m_Registry.container<int>().handles();
+			const std::vector<bob::entity>& vec3_handles = this->m_Registry.container<Vector3>().handles();
+			const std::vector<bob::entity>& int_handles = this->m_Registry.container<int>().handles();
 
 			for (size_t i = 0, n = test_group.size(); i < n; ++i)
 				assert(vec3_handles[i] == int_handles[i]);
@@ -258,10 +258,10 @@ class RegistryTest
 
 			const auto& test_group = this->m_Registry.containers<Vector3, int>();
 
-			this->m_Registry.remove<int>(bob::entity_handle(3));
+			this->m_Registry.remove<int>(bob::entity(3));
 			
-			const std::vector<bob::entity_handle>& vec3_handles = this->m_Registry.container<Vector3>().handles();
-			const std::vector<bob::entity_handle>& int_handles = this->m_Registry.container<int>().handles();
+			const std::vector<bob::entity>& vec3_handles = this->m_Registry.container<Vector3>().handles();
+			const std::vector<bob::entity>& int_handles = this->m_Registry.container<int>().handles();
 
 			for (size_t i = 0, n = test_group.size(); i < n; ++i)
 				assert(vec3_handles[i] == int_handles[i]);
@@ -275,7 +275,7 @@ class RegistryTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle third_handle = bob::entity_handle(2);
+			const bob::entity third_handle = bob::entity(2);
 
 			this->m_Registry.remove<Tag, Vector2, std::string>(third_handle);
 			this->m_Registry.release_handle(third_handle);
@@ -290,7 +290,7 @@ class RegistryTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle second_handle = bob::entity_handle(1);
+			const bob::entity second_handle = bob::entity(1);
 
 			this->m_Registry.remove<Vector2, std::string>(second_handle);
 			this->m_Registry.release_handle(second_handle);
@@ -305,7 +305,7 @@ class RegistryTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle first_handle = bob::entity_handle(0);
+			const bob::entity first_handle = bob::entity(0);
 
 			this->m_Registry.remove<std::string>(first_handle);
 			this->m_Registry.release_handle(first_handle);

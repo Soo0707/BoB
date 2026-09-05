@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include "bob/entity_handle.hpp"
+#include "bob/entity.hpp"
 #include "bob/sparse_set.hpp"
 #include "bob/utilities.hpp"
 
@@ -62,7 +62,7 @@ namespace bob
 				static_cast<group_field<T>*>(this)->data = ptr;
 			}
 
-			void m_AddCallbackImpl(const entity_handle handle) noexcept
+			void m_AddCallbackImpl(const entity handle) noexcept
 			{
 				const bool valid = (this->container<Components>().has(handle) && ...);
 
@@ -73,7 +73,7 @@ namespace bob
 				}
 			}
 
-			void m_RemoveCallbackImpl(const entity_handle handle) noexcept
+			void m_RemoveCallbackImpl(const entity handle) noexcept
 			{
 				const bool valid = (this->container<Components>().has(handle) && ...);
 

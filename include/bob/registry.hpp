@@ -14,8 +14,8 @@
 #include <memory>
 #include <vector>
 
-#include "bob/entity_handle_generator.hpp"
-#include "bob/entity_handle.hpp"
+#include "bob/entity.hpp"
+#include "bob/handle_generator.hpp"
 #include "bob/sparse_set.hpp"
 #include "bob/group.hpp"
 
@@ -27,12 +27,12 @@ namespace bob
 			registry()
 			{}
 
-			entity_handle create_handle() noexcept
+			entity create_handle() noexcept
 			{
 				return this->m_HandleGenerator.create_handle();
 			}
 
-			void release_handle(const entity_handle handle) noexcept
+			void release_handle(const entity handle) noexcept
 			{
 				this->m_HandleGenerator.invalidate_handle(handle);
 			}
@@ -69,14 +69,14 @@ namespace bob
 			}
 
 			template <typename T, typename... Arg>
-			void add(const entity_handle handle, Arg&&... args) noexcept
+			void add(const entity handle, Arg&&... args) noexcept
 			{
 				sparse_set<T>& concrete_set = this->container<T>();
 				concrete_set.add(handle, std::forward<Arg>(args)...);
 			}
 
 			template <typename... T>
-			void remove(const entity_handle handle) noexcept
+			void remove(const entity handle) noexcept
 			{
 				static_assert(
 						sizeof...(T) > 0 &&
@@ -98,7 +98,7 @@ namespace bob
 			}
 			
 			template <typename First, typename... After>
-			const std::vector<entity_handle>& iterator() const noexcept
+			const std::vector<entity>& iterator() const noexcept
 			{
 				/*
 				TODO: it might be a good idea to sort the arbitrary ordered components at compile time
@@ -111,7 +111,7 @@ namespace bob
 				note to self: this stupid template costed you hours of your sanity
 				a const reference is non reassignable, to do this correctly, you need to make a pointer
 				 */
-				const std::vector<entity_handle>* smallest = &m_GetHandleLayer<First>();
+				const std::vector<entity>* smallest = &m_GetHandleLayer<First>();
 
 				if constexpr (sizeof...(After) > 0)
 					((smallest = &m_SelectSmallerSparse<After>(*smallest)), ...);
@@ -166,21 +166,21 @@ namespace bob
 			}
 
 			template <typename T>
-			const std::vector<entity_handle>& m_GetHandleLayer() const noexcept
+			const std::vector<entity>& m_GetHandleLayer() const noexcept
 			{
 				const sparse_set<T>& concrete_set = this->container<T>();
 				return concrete_set.handles();
 			}
 
 			template <typename T>
-			const std::vector<entity_handle>& m_SelectSmallerSparse(const std::vector<entity_handle>& current) const noexcept
+			const std::vector<entity>& m_SelectSmallerSparse(const std::vector<entity>& current) const noexcept
 			{
-				const std::vector<entity_handle>& next = m_GetHandleLayer<T>();
+				const std::vector<entity>& next = m_GetHandleLayer<T>();
 				return (next.size() < current.size()) ? next : current;
 			}
 
 			template <typename T>
-			void m_RemoveComponent(const entity_handle handle) noexcept
+			void m_RemoveComponent(const entity handle) noexcept
 			{
 				sparse_set<T>& concrete_set = this->container<T>();
 				concrete_set.remove(handle);
@@ -189,7 +189,7 @@ namespace bob
 			std::vector<std::unique_ptr<abstract_sparse_set>> m_Sets;
 			std::vector<std::unique_ptr<abstract_group>> m_Groups;
 
-			entity_handle_generator m_HandleGenerator;
+			handle_generator m_HandleGenerator;
 
 			static inline size_t m_TypeCounter = 0;
 			static inline size_t m_GroupCounter = 0;

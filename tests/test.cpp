@@ -6,8 +6,8 @@
  * See the LICENSE file in the project root for full license text.
  */
 
-#include "headers/entity_handle_test.hpp"
-#include "headers/entity_handle_generator_test.hpp"
+#include "headers/entity_test.hpp"
+#include "headers/handle_generator_test.hpp"
 #include "headers/sparse_set_test.hpp"
 #include "headers/registry_test.hpp"
 #include "headers/thread_pool_test.hpp"

@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-#include "bob/entity_handle.hpp"
+#include "bob/entity.hpp"
 #include "bob/utilities.hpp"
 
 namespace bob
@@ -54,7 +54,7 @@ namespace bob
 				return *this;
 			}
 
-			bool has(const entity_handle handle) const noexcept
+			bool has(const entity handle) const noexcept
 			{
 				assert(handle != invalid_handle && "BOB [sparse_set][has()]: invalid handle");
 				
@@ -66,7 +66,7 @@ namespace bob
 				if (dense_index >= this->m_HandleBuffer.size())
 					return false;
 
-				const entity_handle stored_handle = this->m_HandleBuffer[dense_index];
+				const entity stored_handle = this->m_HandleBuffer[dense_index];
 
 				if (handle != stored_handle)
 					return false;
@@ -74,7 +74,7 @@ namespace bob
 				return true;
 			}
 
-			const T& operator[](const entity_handle handle) const noexcept
+			const T& operator[](const entity handle) const noexcept
 			{
 				assert(
 						handle != invalid_handle &&
@@ -103,7 +103,7 @@ namespace bob
 				return this->m_ComponentBuffer[dense_index];
 			}
 
-			T& operator[](const entity_handle handle) noexcept
+			T& operator[](const entity handle) noexcept
 			{
 				return const_cast<T&>(std::as_const(*this)[handle]);
 			}
@@ -118,14 +118,14 @@ namespace bob
 				return this->m_ComponentBuffer;
 			}
 			
-			const std::vector<entity_handle>& handles() const noexcept
+			const std::vector<entity>& handles() const noexcept
 			{
 				return this->m_HandleBuffer;
 			}
 
 			// NOTE: do NOT call add and remove directly. it is best to go through the registry.
 			template <typename... Arg>
-			void add(const entity_handle handle, Arg&&... args) noexcept
+			void add(const entity handle, Arg&&... args) noexcept
 			{
 				assert(
 						!this->has(handle) &&
@@ -144,7 +144,7 @@ namespace bob
 					this->m_AddProxy(handle);
 			}
 
-			void remove(const entity_handle handle) noexcept
+			void remove(const entity handle) noexcept
 			{
 				// nullptr check
 				if (this->m_RemoveProxy.context != this->m_RemoveProxy.callback)
@@ -160,7 +160,7 @@ namespace bob
 						"BOB [sparse_set][remove()]: requested for deletion of same index of different generation"
 						);
 
-				const bob::entity_handle moving_entity = this->m_HandleBuffer.back();
+				const bob::entity moving_entity = this->m_HandleBuffer.back();
 				const uint32_t last_dense_index = static_cast<uint32_t>(this->m_HandleBuffer.size()) - 1;
 
 				if (entity_dense_index != last_dense_index)
@@ -182,15 +182,15 @@ namespace bob
 				this->m_ComponentBuffer.reserve(new_size);
 			}
 
-			void shift(const bob::entity_handle entity, const size_t destination) noexcept
+			void shift(const entity handle, const size_t destination) noexcept
 			{
-				const size_t entity_dense_index = this->m_SparseBuffer[entity.index()];
-				const bob::entity_handle destination_entity = this->m_HandleBuffer[destination];
+				const size_t entity_dense_index = this->m_SparseBuffer[handle.index()];
+				const entity destination_entity = this->m_HandleBuffer[destination];
 
-				if (entity == destination_entity)
+				if (handle == destination_entity)
 					return;
 
-				std::swap(this->m_SparseBuffer[destination_entity.index()], this->m_SparseBuffer[entity.index()]);
+				std::swap(this->m_SparseBuffer[destination_entity.index()], this->m_SparseBuffer[handle.index()]);
 				std::swap(this->m_HandleBuffer[destination], this->m_HandleBuffer[entity_dense_index]);
 				std::swap(this->m_ComponentBuffer[destination], this->m_ComponentBuffer[entity_dense_index]);
 			}
@@ -203,7 +203,7 @@ namespace bob
 
 		private:
 			std::vector<uint32_t> m_SparseBuffer;
-			std::vector<entity_handle> m_HandleBuffer;
+			std::vector<entity> m_HandleBuffer;
 			std::vector<T> m_ComponentBuffer;
 
 			proxy m_AddProxy;

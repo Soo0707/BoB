@@ -62,8 +62,8 @@ class ThreadPoolTest
 
 			for (size_t i = 0; i < 1048575; ++i)
 			{
-				r.add<int>(bob::entity_handle(static_cast<uint32_t>(i)), static_cast<int>(i));
-				r.add<size_t>(bob::entity_handle(static_cast<uint32_t>(i)), i);
+				r.add<int>(bob::entity(static_cast<uint32_t>(i)), static_cast<int>(i));
+				r.add<size_t>(bob::entity(static_cast<uint32_t>(i)), i);
 			}
 
 			bob::group<int, size_t>& test_group = r.containers<int, size_t>();

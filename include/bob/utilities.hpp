@@ -1,12 +1,12 @@
 #ifndef BOB_UTILITIES
 #define BOB_UTILITIES
 
-#include "bob/entity_handle.hpp"
+#include "bob/entity.hpp"
 
 namespace bob
 {
-	template <typename T, void(T::*F)(const bob::entity_handle) noexcept>
-	void execute(void* context, const bob::entity_handle handle) noexcept
+	template <typename T, void(T::*F)(const entity) noexcept>
+	void execute(void* context, const entity handle) noexcept
 	{
 		T* concrete_context = static_cast<T*>(context);
 		(concrete_context->*F)(handle);
@@ -15,9 +15,9 @@ namespace bob
 	struct proxy
 	{
 		void* context = nullptr;
-		void(*callback)(void* context, const bob::entity_handle) noexcept = nullptr;
+		void(*callback)(void* context, const entity) noexcept = nullptr;
 
-		void operator()(const bob::entity_handle handle) noexcept
+		void operator()(const entity handle) noexcept
 		{
 			this->callback(this->context, handle);
 		}

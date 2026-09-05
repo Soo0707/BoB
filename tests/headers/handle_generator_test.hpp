@@ -6,10 +6,10 @@
  * See the LICENSE file in the project root for full license text.
  */
 
-#ifndef BOB_ENTITY_HANDLE_GENERATOR_TEST
-#define BOB_ENTITY_HANDLE_GENERATOR_TEST
+#ifndef BOB_HANDLE_GENERATOR_TEST
+#define BOB_HANDLE_GENERATOR_TEST
 
-#include "bob/entity_handle_generator.hpp"
+#include "bob/handle_generator.hpp"
 
 #include <iostream>
 #include <cassert>
@@ -29,8 +29,8 @@ class EntityHandleGeneratorTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle first_handle = this->m_HandleGenerator.create_handle();
-			assert(first_handle == bob::entity_handle(0));
+			const bob::entity first_handle = this->m_HandleGenerator.create_handle();
+			assert(first_handle == bob::entity(0));
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
@@ -39,8 +39,8 @@ class EntityHandleGeneratorTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 			
-			const bob::entity_handle second_handle = this->m_HandleGenerator.create_handle();
-			assert(second_handle == bob::entity_handle(1));
+			const bob::entity second_handle = this->m_HandleGenerator.create_handle();
+			assert(second_handle == bob::entity(1));
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
@@ -49,19 +49,19 @@ class EntityHandleGeneratorTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const bob::entity_handle second_handle = bob::entity_handle(1);
+			const bob::entity second_handle = bob::entity(1);
 
 			this->m_HandleGenerator.invalidate_handle(second_handle);
 
-			const bob::entity_handle recycled_handle = this->m_HandleGenerator.create_handle();
-			assert(recycled_handle == bob::entity_handle(0x100001));
+			const bob::entity recycled_handle = this->m_HandleGenerator.create_handle();
+			assert(recycled_handle == bob::entity(0x100001));
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
 		}
 		
 		// TODO: test recycling from generation 4096
 
-		bob::entity_handle_generator m_HandleGenerator;
+		bob::handle_generator m_HandleGenerator;
 };
 
 #endif

@@ -35,11 +35,11 @@ class SparseSetTest
 
 			for (size_t i = 0; i < 4; i++)
 			{
-				const bob::entity_handle handle = bob::entity_handle(static_cast<uint32_t>(i));
+				const bob::entity handle = bob::entity(static_cast<uint32_t>(i));
 				this->m_Sparse.add(handle, i);
 			}
 
-			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.handles();
+			const std::vector<bob::entity>& tag_handles = this->m_Sparse.handles();
 			assert(tag_handles.size() == 4);
 			
 			std::cout << __FILE_NAME__ << ": " << __FUNCTION__ << " passed\n";
@@ -49,12 +49,12 @@ class SparseSetTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.handles();
+			const std::vector<bob::entity>& tag_handles = this->m_Sparse.handles();
 
 			for (size_t i = 0, n = tag_handles.size(); i < n; ++i)
 			{
 				const uint32_t dense_index = tag_handles[i].index();
-				const bob::entity_handle handle = bob::entity_handle(static_cast<uint32_t>(i));
+				const bob::entity handle = bob::entity(static_cast<uint32_t>(i));
 
 				assert(tag_handles[dense_index] == handle);
 			}
@@ -66,14 +66,14 @@ class SparseSetTest
 		{
 			std::cout << __FILE_NAME__ << ": Running " << __FUNCTION__ << "\n";
 
-			const std::vector<bob::entity_handle>& tag_handles = this->m_Sparse.handles();
+			const std::vector<bob::entity>& tag_handles = this->m_Sparse.handles();
 
-			const bob::entity_handle zero = bob::entity_handle(0);
-			const bob::entity_handle last = bob::entity_handle(static_cast<uint32_t>(tag_handles.size() - 1));
+			const bob::entity zero = bob::entity(0);
+			const bob::entity last = bob::entity(static_cast<uint32_t>(tag_handles.size() - 1));
 
 			this->m_Sparse.shift(zero, tag_handles.size() - 1);
 
-			assert(tag_handles[0] == bob::entity_handle(3));
+			assert(tag_handles[0] == bob::entity(3));
 			assert(tag_handles[3] == zero);
 
 			assert(this->m_Sparse[zero] == 0);
@@ -91,7 +91,7 @@ class SparseSetTest
 
 			for (size_t i = 0; i < 4; ++i)
 			{
-				const bob::entity_handle handle = bob::entity_handle(static_cast<uint32_t>(i));
+				const bob::entity handle = bob::entity(static_cast<uint32_t>(i));
 				m_Sparse.remove(handle);
 			}
 			
