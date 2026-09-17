@@ -9,11 +9,11 @@
 #ifndef BOB
 #define BOB
 
-#include "bob/entity.hpp"
-#include "bob/handle_generator.hpp"
-#include "bob/sparse_set.hpp"
-#include "bob/group.hpp"
-#include "bob/registry.hpp"
-#include "bob/thread_pool.hpp"
+#include "entity.hpp"
+#include "handle_generator.hpp"
+#include "sparse_set.hpp"
+#include "group.hpp"
+#include "registry.hpp"
+#include "thread_pool.hpp"
 
 #endif

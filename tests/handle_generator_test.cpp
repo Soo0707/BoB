@@ -6,21 +6,21 @@
  * See the LICENSE file in the project root for full license text.
  */
 
-#include "catch2/catch_amalgamated.hpp"
-#include "bob/handle_generator.hpp"
+#include "catch_amalgamated.hpp"
+#include "bob.hpp"
 
 struct HandleGeneratorFixture
 {
 	bob::handle_generator generator;
 };
 
-TEST_CASE_METHOD(HandleGeneratorFixture, "generate the zero handle", "[HandleGenerator]")
+TEST_CASE_METHOD(HandleGeneratorFixture, "generate the zero handle", "[handle_generator]")
 {
 	const bob::entity first_handle = generator.create_handle();
 	CHECK(first_handle == bob::entity(0));
 }
 
-TEST_CASE_METHOD(HandleGeneratorFixture, "generate the one handle", "[HandleGenerator]")
+TEST_CASE_METHOD(HandleGeneratorFixture, "generate the one handle", "[handle_generator]")
 {
 	const bob::entity first_handle = generator.create_handle();
 	const bob::entity second_handle = generator.create_handle();
@@ -28,7 +28,7 @@ TEST_CASE_METHOD(HandleGeneratorFixture, "generate the one handle", "[HandleGene
 	CHECK(second_handle == bob::entity(1));
 }
 
-TEST_CASE_METHOD(HandleGeneratorFixture, "invalidate a handle then request another for a generation bump", "[HandleGenerator]")
+TEST_CASE_METHOD(HandleGeneratorFixture, "invalidate a handle then request another for a generation bump", "[handle generator]")
 {
 	const bob::entity handle = generator.create_handle();
 	generator.invalidate_handle(handle);

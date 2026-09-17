@@ -9,10 +9,8 @@
 #include <string>
 #include <vector>
 
-#include "catch2/catch_amalgamated.hpp"
-#include "bob/entity.hpp"
-#include "bob/sparse_set.hpp"
-#include "bob/registry.hpp"
+#include "catch_amalgamated.hpp"
+#include "bob.hpp"
 
 struct Vector2
 {
@@ -37,7 +35,7 @@ struct UnseededRegistryFixture
 
 struct SeededRegistryFixture
 {
-	SeededRegistyFixture()
+	SeededRegistryFixture()
 	{
 		registry.register_component<std::string>();
 		registry.register_component<Vector2>();
@@ -83,9 +81,11 @@ struct GroupedRegistryFixture
 	bob::registry registry;
 };
 
-TEST_CASE_METHOD(UnseededRegistryFixture, "reserve() correctly reserves capacity of vectors", "[Registry]")
+TEST_CASE_METHOD(UnseededRegistryFixture, "reserve() correctly reserves capacity of vectors", "[registry]")
 {
-	registry.reserve<std::string, Vector2, Tag>(1024);
+	registry.reserve<std::string>(1024);
+	registry.reserve<Vector2>(1024);
+	registry.reserve<Tag>(1024);
 
 	const size_t strings_capacity = registry.container<std::string>().components().capacity();
 	const size_t vector2s_capacity = registry.container<Vector2>().components().capacity();
@@ -96,7 +96,7 @@ TEST_CASE_METHOD(UnseededRegistryFixture, "reserve() correctly reserves capacity
 	CHECK(tags_capacity >= 1024);
 }
 
-TEST_CASE_METHOD(UnseededRegistryFixture, "add a std::string to entity 0", "[Registry]")
+TEST_CASE_METHOD(UnseededRegistryFixture, "add a std::string to entity 0", "[registry]")
 {
 	const bob::entity first = registry.create_handle();
 	CHECK(first == bob::entity(0));
@@ -107,7 +107,7 @@ TEST_CASE_METHOD(UnseededRegistryFixture, "add a std::string to entity 0", "[Reg
 	CHECK(string_set_size == 1);
 }
 
-TEST_CASE_METHOD(UnseededRegistryFixture, "add correctly adds a component to an entity", "[Registry]")
+TEST_CASE_METHOD(UnseededRegistryFixture, "add correctly adds a component to an entity", "[registry]")
 {
 	const bob::entity first = registry.create_handle();
 	CHECK(first == bob::entity(0));
@@ -127,8 +127,8 @@ TEST_CASE_METHOD(UnseededRegistryFixture, "add correctly adds a component to an 
 	registry.add<Vector2>(third, 12.0f, 14.0f);
 	registry.add<Tag>(third);
 
-	const bob::sparse_set<std::string>& strings = registry.container<std::strings>();
-	const bob::sparse_set<Vector2>& vector2s = registry.container<vector2s>();
+	const bob::sparse_set<std::string>& strings = registry.container<std::string>();
+	const bob::sparse_set<Vector2>& vector2s = registry.container<Vector2>();
 	const bob::sparse_set<Tag>& tags = registry.container<Tag>();
 
 	CHECK(strings.has(first));
@@ -144,7 +144,7 @@ TEST_CASE_METHOD(UnseededRegistryFixture, "add correctly adds a component to an 
 	CHECK(tags.has(third));
 }
 
-TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with std::string", "[Registry]")
+TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with std::string", "[registry]")
 {
 	const std::vector<bob::entity>& iterator = registry.iterator<std::string>();
 	CHECK(iterator.size() == 3);
@@ -159,7 +159,7 @@ TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with std::stri
 	}
 }
 
-TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with std::string and Vector2", "[Registry]")
+TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with std::string and Vector2", "[registry]")
 {
 	const auto& iterator = registry.iterator<Vector2, std::string>();
 	CHECK(iterator.size() == 2);
@@ -177,7 +177,7 @@ TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with std::stri
 	}
 }
 
-TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with all components", "[Registry]")
+TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with all components", "[registry]")
 {
 	const auto& iterator = registry.iterator<Tag, Vector2, std::string>();
 	CHECK(iterator.size() == 1);
@@ -192,7 +192,7 @@ TEST_CASE_METHOD(SeededRegistryFixture, "iterate through entities with all compo
 	CHECK(vectors[handle].y == 14.0f);
 }
 
-TEST_CASE_METHOD(SeededRegistryFixture, "remove entity 2 and ensure recycled entity handle", "[Registry]")
+TEST_CASE_METHOD(SeededRegistryFixture, "remove entity 2 and ensure recycled entity handle", "[registry]")
 {
 	const bob::entity third = bob::entity(2);
 
@@ -207,22 +207,22 @@ TEST_CASE_METHOD(SeededRegistryFixture, "remove entity 2 and ensure recycled ent
 	CHECK(next.index() == 2);
 }
 
-TEST_CASE_METHOD(SeededRegistryFixture, "remove std::string from entity 1", "[Registry]")
+TEST_CASE_METHOD(SeededRegistryFixture, "remove std::string from entity 1", "[registry]")
 {
 	const bob::entity second = bob::entity(1);
 
 	registry.remove<std::string>(second);
 	const bob::sparse_set<std::string>& strings = registry.container<std::string>();
-	CHECK(strings.has(second));
+	CHECK_FALSE(strings.has(second));
 
 	const std::vector<bob::entity>& iterator = registry.iterator<std::string>();
 	CHECK(iterator.size() == 2);
 
 	for (const auto handle : iterator)
-		CHECK_FALSE(handle != second);
+		CHECK(handle != second);
 }
 
-TEST_CASE_METHOD(GroupRegistryFixture, "add to a group and ensures it orders the front of grouped sparse sets", "[Registry]")
+TEST_CASE_METHOD(GroupedRegistryFixture, "add to a group and ensures it orders the front of grouped sparse sets", "[registry]")
 {
 	const bob::group<Vector2, int>& group = registry.containers<Vector2, int>();
 
@@ -236,7 +236,7 @@ TEST_CASE_METHOD(GroupRegistryFixture, "add to a group and ensures it orders the
 		CHECK(vector2_handles[i] == int_handles[i]);
 }
 
-TEST_CASE_METHOD(GroupRegistryFixture, "remove from a group and ensures it orders the front of grouped sparse sets", "[Registry]")
+TEST_CASE_METHOD(GroupedRegistryFixture, "remove from a group and ensures it orders the front of grouped sparse sets", "[registry]")
 {
 	const bob::group<Vector2, int>& group = registry.containers<Vector2, int>();
 
@@ -246,7 +246,7 @@ TEST_CASE_METHOD(GroupRegistryFixture, "remove from a group and ensures it order
 	const std::vector<bob::entity>& int_handles = registry.container<int>().handles();
 
 	for (size_t i = 0, n = group.size(); i < n; ++i)
-		CHECK(vec3_handles[i] == int_handles[i]);
+		CHECK(vector2_handles[i] == int_handles[i]);
 
 	CHECK(group.size() == 2);
 }

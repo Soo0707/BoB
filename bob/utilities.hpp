@@ -1,7 +1,7 @@
 #ifndef BOB_UTILITIES
 #define BOB_UTILITIES
 
-#include "bob/entity.hpp"
+#include "entity.hpp"
 
 namespace bob
 {

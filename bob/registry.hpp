@@ -14,10 +14,10 @@
 #include <memory>
 #include <vector>
 
-#include "bob/entity.hpp"
-#include "bob/handle_generator.hpp"
-#include "bob/sparse_set.hpp"
-#include "bob/group.hpp"
+#include "entity.hpp"
+#include "handle_generator.hpp"
+#include "sparse_set.hpp"
+#include "group.hpp"
 
 namespace bob
 {
@@ -42,9 +42,13 @@ namespace bob
 			{
 				const size_t type_index = this->m_TypeIndex<T>();
 
-				this->m_Sets.resize(type_index + 1);
-				assert(this->m_Sets[type_index] == nullptr && "BOB [registry][register_component()]: component registered twice");
+				// thank god for gdb. resize() will actually shrink a vector if passed a number smaller than size
+				// the type indices are not guaranteed to be initialised in the order they are first defined
+				// Vector2 could be the first one registered in the source but have type index 3
+				if (type_index + 1 > this->m_Sets.size()) 
+					this->m_Sets.resize(type_index + 1);
 
+				assert(this->m_Sets[type_index] == nullptr && "BOB [registry][register_component()]: component registered twice");
 				this->m_Sets[type_index] = std::make_unique<sparse_set<T>>();
 			}
 
@@ -53,7 +57,9 @@ namespace bob
 			{
 				const size_t group_index = this->m_GroupIndex<T...>();
 
-				this->m_Groups.resize(group_index + 1);
+				if (group_index + 1 > this->m_Groups.size())
+					this->m_Groups.resize(group_index + 1);
+
 				assert(this->m_Groups[group_index].get() == nullptr && "BOB [registry][register_group()]: group registered twice");
 
 				(this->register_component<T>(), ...);

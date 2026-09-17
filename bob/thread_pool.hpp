@@ -16,7 +16,7 @@
 #include <thread>
 #include <vector>
 
-#include "bob/group.hpp"
+#include "group.hpp"
 
 namespace bob
 {

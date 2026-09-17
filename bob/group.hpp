@@ -3,9 +3,9 @@
 
 #include <cstddef>
 
-#include "bob/entity.hpp"
-#include "bob/sparse_set.hpp"
-#include "bob/utilities.hpp"
+#include "entity.hpp"
+#include "sparse_set.hpp"
+#include "utilities.hpp"
 
 namespace bob
 {

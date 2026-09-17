@@ -15,8 +15,8 @@
 #include <utility>
 #include <vector>
 
-#include "bob/entity.hpp"
-#include "bob/utilities.hpp"
+#include "entity.hpp"
+#include "utilities.hpp"
 
 namespace bob
 {

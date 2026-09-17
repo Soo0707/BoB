@@ -6,8 +6,8 @@
  * See the LICENSE file in the project root for full license text.
  */
 
-#include "catch2/catch_amalgamated.hpp"
-#include "bob/entity.hpp"
+#include "catch_amalgamated.hpp"
+#include "bob.hpp"
 
 TEST_CASE("create an entity of index 0 and generation 0", "[entity]")
 {
