@@ -1,12 +1,11 @@
 NAME := test
 
 CXX := g++
-CXXFLAGS :=	-Ibob -Icatch2 -std=c++20 -Wshadow -Wconversion -march=native
+CXXFLAGS := -Ibob -Icatch2 -std=c++20 -Wshadow -Wconversion -march=native
 DEBUGFLAGS := -g -D_GLIBCXX_DEBUG
 SANITIZEFLAGS := -fsanitize=undefined,leak,address
-THREADSANFLAG := -fsanitize=thread
 
-CACHE := /mnt/tmpfs/cache
+CACHE := build
 SRCS := catch2/catch_amalgamated.cpp $(wildcard tests/*.cpp)
 OBJS := $(addprefix $(CACHE)/, $(SRCS:.cpp=.o))
 
